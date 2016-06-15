@@ -1,8 +1,8 @@
 import subprocess
 import timeAfterReg
 def main():
-    in_file = open("branchingV2.txt",'r')
-    contentBV = in_file.readlines()
+    in_file = open("branchingV2.txt",'r') 
+    contentBV = in_file.readlines() # line example: testFeatures2/test2_ksat-1.txt 224 148
     in_file.close()
     for line in contentBV:
         line = line.split()

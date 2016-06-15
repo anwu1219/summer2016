@@ -36,7 +36,8 @@ def main():
             out_file.write(str(i) + " 0") #adding a unit clause to force this variable to be true
         out = open("temp.dimacs", 'w')
         start = timeit.default_timer()
-        subprocess.call(["/home/chxue/minisat/core/minisat_static",cnf_name_pos], stdout=out)
+        subprocess.call(["/Users/anwu/desktop/research/minisatN",cnf_name_pos], stdout=out) 
+        # AW This line needs to be changed
         end = timeit.default_timer()
         out.close()
         if "UNSAT" in open("temp.dimacs").read():
@@ -49,7 +50,8 @@ def main():
             out_file.write(str(-i) + " 0") #adding a unit clause to force it to be false
         out = open("temp.dimacs", 'w')
         start = timeit.default_timer()
-        subprocess.call(["/home/chxue/minisat/core/minisat_static",cnf_name_neg], stdout=out)
+        subprocess.call(["/Users/anwu/desktop/research/minisatN",cnf_name_neg], stdout=out)
+        # AW This line needs to be changed
         end = timeit.default_timer()
         out.close()
         if "UNSAT" in open("temp.dimacs").read():

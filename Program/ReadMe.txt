@@ -2,7 +2,7 @@ allResults contain the original 101 formulas (the number goes to 103 but I think
 
 bash contains .sh files that call python functions or other functions in order.
 
-csv contains .csv files that are used to construct models and compare resutls.
+csv contains .csv files that are used to construct models and compare results.
 
 findRank.java takes in files like "totalRuntime.txt" in the txt folder and outputs the statistics for RandomForest and Ridge.
 

@@ -15,11 +15,11 @@ def main():
     cnf = open(source)
     content = cnf.readlines()[1:]
     cnf_name = source.split("/")[-1].split(".")[0] + ".txt"
-    
+
     #Computing formula features
-    parameters = content[0].split()
-    formula = content[1:]
-    num_vars = int(parameters[2])
+    parameters = content[0].split() 
+    formula = content[1:] # The clause part of the dimacs file
+    num_vars = int(parameters[2]) # AW Number of variables
     VG = nx.Graph()
     VG.add_nodes_from(range(num_vars+1)[1:])
     preprocess(formula, VG, num_vars)
@@ -45,7 +45,7 @@ def main():
         centrality_features[i,4] = commun[i+1]/100000000 #prescaling
     feature = preprocessing.scale(centrality_features)
     
-    with open(cnf_name, 'w') as doc:
+    with open(cnf_name, 'w') as doc: # AW Write each variable as an instance 
         for i in range(num_vars):
             doc.write(str(i+1)+":")
             for j in range(feature.shape[1]):
