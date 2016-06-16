@@ -7,8 +7,7 @@ import glob
 import timeit
 
 """
-This file is used to obtain training data. It calculates the runtime after 
-branching on each of the vairable.
+This file is used to obtain training data.
 """
 def main():
     start_all = timeit.default_timer()
