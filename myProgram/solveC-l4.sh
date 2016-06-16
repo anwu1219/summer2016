@@ -1,9 +1,9 @@
 #!/bin/bash
-cd f4
-for file in f4/*.dimacs
+cd f1
+for file in *.dimacs
 do
 echo $file
-python getBB.py $file
+python miniSolv.py $file
 
 done
 cd ..

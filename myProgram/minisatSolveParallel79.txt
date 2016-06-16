@@ -1,0 +1,5 @@
+bash solveC-l6.sh
+bash solveC-l7.sh
+bash solveC-l8.sh
+bash solveC-l9.sh
+bash solveC-l10.sh
