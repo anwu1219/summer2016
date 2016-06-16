@@ -5,8 +5,9 @@ do
 y=10
 for file in $i-*.dimacs
 do
+echo $file
 j=$(((i-1)/y))
 j=$((j+1))
-mv $i-*.dimacs f$j
+mv $file f$j
 done
 done
