@@ -1,10 +1,10 @@
 #!/bin/bash
-cd f1
-for file in f1/*.dimacs
+
+for file in f10/*.dimacs
 do
 echo $file
 python getBB.py $file
 
 done
-cd ..
+
 #rm temp*
