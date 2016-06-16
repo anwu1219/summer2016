@@ -1,0 +1,1 @@
+for i in {1..10}; do  python bashControl.py -c testp1.sh genC-l$i.sh; done
