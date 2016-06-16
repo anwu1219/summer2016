@@ -1,0 +1,9 @@
+#!/bin/bash
+
+for file in f1/*.dimacs
+do
+    dir=$(basename $file)
+    name="${file%.*}"
+    echo $name
+    minisat $file -verb=2 $name.txt
+done
