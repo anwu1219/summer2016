@@ -1,10 +1,10 @@
 #!/bin/bash
-cd f1
-for file in *.dimacs
+
+for file in f10/*.dimacs
 do
 echo $file
 python miniSolv.py $file
 
 done
-cd ..
+
 #rm temp*
