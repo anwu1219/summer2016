@@ -7,6 +7,18 @@
 *.jar
 *.war
 *.ear
+myProgram/f1/
+myProgram/f2/
+myProgram/f3/
+myProgram/f4/
+myProgram/f5/
+myProgram/f6/
+myProgram/f7/
+myProgram/f8/
+myProgram/f9/
+myProgram/f10/
+
+
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
