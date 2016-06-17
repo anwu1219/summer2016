@@ -38,16 +38,24 @@ def write_file(lit, new_dimacs_name, in_content):
         else:
             deleted_clause += 1
     info = in_content[1].split()
+    info[2] = str(int(info[3]) - 1)
     info[3] = str(int(info[3]) - deleted_clause)
     new_dimacs[1] = " ".join(info) # update the number of clauses
     with open(new_dimacs_name, 'w') as out_file:
         out_file.write(new_dimacs[0]) # The first line has change line itself
         for line in new_dimacs[1:]:
+            line = " ".join(update_line(line, abs(lit)))
             out_file.write(line + "\n")
     return
 
 
-
+def update_line(line, var):
+    line = map(int, line)
+    for i in range(len(line)):
+        if abs(line[i]) > var:
+            sign = line[i] / abs(line[i])
+            line[i] = mark * (abs(line[i]) - 1)
+    return map(str, line)
 
 if __name__ == "__main__":
     main()
