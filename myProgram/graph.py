@@ -15,7 +15,6 @@ def main():
     source = sys.argv[1]
     cnf = open(source)
     content = cnf.readlines()[1:]
-
     #Computing formula features
     parameters = content[0].split() 
     formula = content[1:] # The clause part of the dimacs file
@@ -27,26 +26,27 @@ def main():
     VCG.add_nodes_from(range(num_vars + num_clause + 1)[1:])
     preprocess_VIG(formula, VIG) # Build a VIG
     preprocess_VCG(formula, VCG, num_vars) # Build a VCG
-    features = add_stat(VIG.degree().values())
-    features += add_stat(VCG.degree().values()[:num_vars])
-    part_VIG = community.best_partition(VIG)
-    mod_VIG = community.modularity(part_VIG,VIG) # Modularity of VIG
-    part_VCG = community.best_partition(VCG)
-    mod_VCG = community.modularity(part_VCG,VCG) # Modularity of VCG
-    features.append(mod_VIG)
-    features.append(mod_VCG)
-    # values = [part_VCG.get(node) for node in VCG.nodes()]
-    # nx.draw_spring(VCG, cmap=plt.get_cmap('jet'), node_color = values, node_size=30, with_labels=False)
-    # plt.show()
-    #features_all = preprocessing.scale(features_all)
+    features = []
+    features.append(num_vars) 
+    features.append(num_clause)
+    features.append(float(num_clause) / num_vars) # Clause variable ratio
+    features += add_stat(VIG.degree().values()) # VIG degree features
+    features += add_stat(VCG.degree().values()[:num_vars])  # VCG var degree features
+    features += add_stat(VCG.degree().values()[num_vars:])  # VCG clause degree features
+    features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause
+    features += add_stat(get_pos_neg_occ(formula, num_vars))    # Occurence of positive and negative literals for each variable
+    features.append(get_binary(formula, num_clause))    # Ratio of binary clause
+    features += horn_features(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
+    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
+
     with open("feats.txt", 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
 
 
-    
-
+#--------------------------------------------feature extraction methods-------------------------------------#
 def preprocess_VIG(formula, VIG):
     """
+    Transforms a formula into int matrix
     Builds VIG.
     """
     for cn in range(len(formula)):
@@ -66,44 +66,120 @@ def preprocess_VCG(formula, VCG, num_vars):
             VCG.add_edge(abs(var), cn + num_vars + 1)    
 
     
-    
-def construct_and_calculate(formula, num_vars, index, ratio_incls, ratio_var, 
-                            deg_var_VCG, deg_var_VIG): 
+def get_pos_neg_ratio(formula):
+    """ 
+    get the ratio of positive occurrences of each literal
     """
-    A mistake is made here. This calculates the number of binary clauses, not 
-    the number of horn clauses.
+    lst = []
+    for line in formula:
+        pos = 0
+        for ele in line:
+            if ele > 0:
+                pos += 1
+        lst.append(float(pos) / len(line))
+    return lst
+
+
+
+
+def get_pos_neg_occ(formula, num_vars):
+    """ 
+    get the ratio of positive and negative occurrences of each variable
+    """
+    dic = {}
+    lst = []
+    for i in range(num_vars + 1)[1:]:
+        dic[i] = [0, 0]
+    for line in formula:
+        for ele in line:
+            dic[abs(ele)][0] = dic[abs(ele)][0] + 1
+            if ele > 0:
+                dic[abs(ele)][1] = dic[abs(ele)][1] + 1
+    for i in range(num_vars + 1)[1:]:
+        lst.append(float(dic[i][1]) / dic[i][0])
+    return lst
+
+
+
+def get_binary(formula, num_clause):
+    """
+    get the ratio of binary clauses
+    """
+    num = 0
+    for line in formula:
+        if len(line) == 2:
+            num += 1
+    return float(num) / num_clause
+
+
+#--------------------------------------------horn-related features-----------------------------------------#
+
+
+def horn_features(formula, num_vars, num_clause):
+    """
+    Formats the outputs of ratio_horn_clauses(), returns processed 10 features related to horn clauses
+    """
+    ratio_horn, ratio_rev_horn, lst = ratio_horn_clauses(formula, num_vars, num_clause)
+    horn_var_feats = add_stat(lst[0])
+    rev_horn_var_feats = add_stat(lst[1])
+    return [ratio_horn, ratio_rev_horn] + horn_var_feats + rev_horn_var_feats
+
+def ratio_horn_clauses(formula, num_vars, num_clause):
+    """
+    Get the ratiotion of horn clauses, reverse horn clauses in the formula, 
+    as well as the occurence of each variable in horn clauses and reverse horn clauses
     """
     num_horn = 0
-    count_vars_pos = [0] * num_vars
-    count_vars_neg = [0] * num_vars    
-    for cn in range(len(formula)):
-        c = formula[cn]
-        if (len(c) == 2):
+    num_rev_horn = 0
+    dic = {}
+    lst = [[],[]]   
+    # the first row is the occrence of each variable in horn clauses, the second in reverse horn clauses
+    for i in range(num_vars + 1)[1:]:
+        dic[i] = [0, 0]
+    for line in formula:
+        num_pos, num_neg = pos_neg_lits(line)
+        if num_pos <= 1:
             num_horn += 1
-        pos_cnt = 0
-        for i in range(len(c)):
-            if c[i] < 0:
-                count_vars_neg[abs(c[i])-1] += 1
-            else:
-                pos_cnt += 1
-                count_vars_pos[c[i]-1] += 1
-            deg_var_VCG[abs(c[i])-1] += 1
-        ratio_incls.append(pos_cnt * 1.0/len(c))
-        for i in range(len(c)-1):
-            for j in range(len(c))[i+1:]:
-                deg_var_VIG[abs(c[i])-1] += 1
-                deg_var_VIG[abs(c[j])-1] += 1
-    
-    count_vars_pos.pop(index-1)
-    count_vars_neg.pop(index-1)
-    deg_var_VCG.pop(index-1)
-    deg_var_VIG.pop(index-1)
-    for i in range(len(count_vars_pos)):
-        if count_vars_pos[i] + count_vars_neg[i] == 0:
-            ratio_var.append(0)
-        else:
-            ratio_var.append(count_vars_pos[i]*1.0/(count_vars_pos[i] + count_vars_neg[i]))
-    return num_horn
+            for ele in line:
+                dic[abs(ele)][0] += 1
+        if num_neg <= 1:
+            num_rev_horn += 1
+            for ele in line:
+                dic[abs(ele)][1] += 1
+    for i in range(num_vars + 1)[1:]:
+        lst[0].append(dic[i][0])
+        lst[1].append(dic[i][1])
+    return 1.0 * num_horn / num_clause, 1.0 * num_rev_horn / num_clause, lst
+
+def pos_neg_lits(clause):
+    # This is a helper function for ratio_horn_clauses(); 
+    # returns the number of positive literals in a clause
+    # in the case of 3^(-)-cnf, which is our case, if a clause is not a horn clause, 
+    # then it is a reverse horn clause 
+    new_clause = np.array(clause)
+    return (new_clause > 0).sum(), (new_clause < 0).sum()
+
+
+#------------------------------------------modularity-related features-------------------------------------#
+
+
+def get_modularities(VIG, VCG, graphic):
+    """
+    Returns the modularities of VIG and VCG representations of the formula
+    """
+    part_VIG = community.best_partition(VIG)
+    mod_VIG = community.modularity(part_VIG,VIG) # Modularity of VIG
+    part_VCG = community.best_partition(VCG)
+    mod_VCG = community.modularity(part_VCG,VCG) # Modularity of VCG
+    if graphic:
+        values = [part_VCG.get(node) for node in VCG.nodes()]
+        nx.draw_spring(VCG, cmap=plt.get_cmap('jet'), node_color = values, node_size=30, with_labels=False)
+        plt.show()
+        features_all = preprocessing.scale(features_all)
+    return [mod_VIG, mod_VCG]
+
+
+#-----------------------------------------------statistics-------------------------------------------------#
 
 def add_stat(lst):
     """
