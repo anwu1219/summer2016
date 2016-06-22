@@ -21,12 +21,14 @@ with open(targets_file_name, 'r') as in_file:
 targets.sort(key=operator.itemgetter(0))
 
 with open(out_file_name, 'w') as out_file:
+        j = 0
 	for i in range(len(features)):
-		if features[i][0] == targets[i][0]:
+		if features[i][0] == targets[j][0]:
 			line = " ".join(features[i][1:]) + " " + targets[i][-1]
 			out_file.write(line + "\n")
 		else:
 			print "not matched"
 			print features[i][0], targets[i][0]
-			break
+			j += 1
+                j += 1
 
