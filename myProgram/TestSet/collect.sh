@@ -1,5 +1,3 @@
-rm collectTs.txt
-rm collect.txt
 parallel python collect_examples.py collectTs.txt {} ::: *.txt &
 
 
