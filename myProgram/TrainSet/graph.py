@@ -39,7 +39,7 @@ def main():
     features += horn_features(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
 
-    with open("feats.txt", 'a') as out_file:
+    with open("feats.txt", 'w') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
 
 
