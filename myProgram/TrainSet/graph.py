@@ -4,6 +4,7 @@ sys.path.append("/Library/Python/2.7/site-packages")
 import community
 import networkx as nx
 import numpy as np
+import scipy as sp
 #import csv
 #import matplotlib.pyplot as plt
 
@@ -13,8 +14,15 @@ This file takes in a dimacs file, calculates the features of it and stores them 
 """
 def main():
     source = sys.argv[1]
+    SAT = sys.argv[2]
     cnf = open(source)
-    content = cnf.readlines()[1:]
+    content = cnf.readlines()
+    while content[0].split()[0] == 'c':
+        content = content[1:]
+
+    while len(content[-1].split()) <= 1:
+        content = content[:-1]
+
     #Computing formula features
     parameters = content[0].split() 
     formula = content[1:] # The clause part of the dimacs file
@@ -38,8 +46,8 @@ def main():
     features.append(get_binary(formula, num_clause))    # Ratio of binary clause
     features += horn_features(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
-
-    with open("feats.txt", 'a') as out_file:
+    features += [SAT]
+    with open(sys.argv[3], 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
 
 
@@ -96,7 +104,7 @@ def get_pos_neg_occ(formula, num_vars):
             if ele > 0:
                 dic[abs(ele)][1] = dic[abs(ele)][1] + 1
     for i in range(num_vars + 1)[1:]:
-        lst.append(float(dic[i][1]) / dic[i][0])
+        lst.append(float(dic[i][1]) / (dic[i][0] + dic[i][1]))
     return lst
 
 
@@ -185,7 +193,7 @@ def add_stat(lst):
     """
     add max, min, mean, std of the give statistics to the features list.
     """
-    return [max(lst),min(lst), np.mean(lst), np.std(lst)]
+    return [max(lst),min(lst), np.mean(lst), np.std(lst), sp.stats.entropy(lst)]
     
 if __name__ == "__main__":
     main()
