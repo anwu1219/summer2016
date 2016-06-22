@@ -24,10 +24,10 @@ with open(out_file_name, 'w') as out_file:
         j = 0
 	for i in range(len(features)):
 		if features[i][0] == targets[j][0]:
-			line = " ".join(features[i][1:]) + " " + targets[i][-1]
+			line = " ".join(features[i][1:]) + " " + targets[j][-1]
 			out_file.write(line + "\n")
 		else:
 			print "not matched"
-			print features[i][0], targets[i][0]
+			print features[i][0], targets[j][0]
 			j += 1
                 j += 1
