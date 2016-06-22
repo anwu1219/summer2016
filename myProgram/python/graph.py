@@ -68,7 +68,7 @@ def preprocess_VCG(formula, VCG, num_vars):
     
 def get_pos_neg_ratio(formula):
     """ 
-    get the ratio of positive occurrences of each literal
+    get the ratio of positive occurrences in each clause
     """
     lst = []
     for line in formula:
@@ -84,7 +84,7 @@ def get_pos_neg_ratio(formula):
 
 def get_pos_neg_occ(formula, num_vars):
     """ 
-    get the ratio of positive and negative occurrences of each variable
+    get the differences between positive and negative occurrences of each variable
     """
     dic = {}
     lst = []
@@ -96,7 +96,7 @@ def get_pos_neg_occ(formula, num_vars):
             if ele > 0:
                 dic[abs(ele)][1] = dic[abs(ele)][1] + 1
     for i in range(num_vars + 1)[1:]:
-        lst.append(float(dic[i][1]) / dic[i][0])
+        lst.append(float(abs(dic[i][0] - dic[i][1])) / (dic[i][0] + dic[i][1]))
     return lst
 
 
@@ -120,19 +120,22 @@ def horn_features(formula, num_vars, num_clause):
     Formats the outputs of ratio_horn_clauses(), returns processed 10 features related to horn clauses
     """
     ratio_horn, ratio_rev_horn, lst = ratio_horn_clauses(formula, num_vars, num_clause)
-    horn_var_feats = add_stat(lst[0])
-    rev_horn_var_feats = add_stat(lst[1])
-    return [ratio_horn, ratio_rev_horn] + horn_var_feats + rev_horn_var_feats
+    #horn_var_feats = add_stat(lst[0])
+    #rev_horn_var_feats = add_stat(lst[1])
+    horn_feats = add_stat(lst)
+    return [abs(ratio_horn - ratio_rev_horn)] + horn_feats
 
 def ratio_horn_clauses(formula, num_vars, num_clause):
     """
-    Get the ratiotion of horn clauses, reverse horn clauses in the formula, 
+    Get the ratio of horn clauses, reverse horn clauses in the formula, 
     as well as the occurence of each variable in horn clauses and reverse horn clauses
     """
     num_horn = 0
     num_rev_horn = 0
     dic = {}
-    lst = [[],[]]   
+    #lst = [[],[]]   
+    lst = []
+
     # the first row is the occrence of each variable in horn clauses, the second in reverse horn clauses
     for i in range(num_vars + 1)[1:]:
         dic[i] = [0, 0]
@@ -147,8 +150,9 @@ def ratio_horn_clauses(formula, num_vars, num_clause):
             for ele in line:
                 dic[abs(ele)][1] += 1
     for i in range(num_vars + 1)[1:]:
-        lst[0].append(dic[i][0])
-        lst[1].append(dic[i][1])
+        #lst[0].append(dic[i][0])
+        #lst[1].append(dic[i][1])
+        lst.append(abs(dic[i][0] - dic[i][1]))
     return 1.0 * num_horn / num_clause, 1.0 * num_rev_horn / num_clause, lst
 
 def pos_neg_lits(clause):
