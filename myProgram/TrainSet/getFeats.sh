@@ -1,1 +1,1 @@
-parallel python graph.py {} ::: *-*.dimacs &
+parallel python graph.py {} ::: *.dimacs &

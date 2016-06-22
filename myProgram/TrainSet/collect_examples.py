@@ -20,11 +20,13 @@ def updateCollect(collect_file, formula):
                                 if "UNSAT" in in_file.readlines()[0]:
                                         tar = 0
                                         with open(collect_file,'a') as out_file:
-                                                out_file.write(formula + " " + formula.split("-")[0] + " " + formula[(len(formula.split("-")[0]) + 1):] + " " + str(tar) + "\n")
+                                                out_file.write(formula + " " + str(tar)+"\n")
+#                                                out_file.write(formula + " " + formula.split("-")[0] + " " + formula[(len(formula.split("-")[0]) + 1):] + " " + str(tar) + "\n")
                                 else:
                                         tar = 1
                                         with open(collect_file,'a') as out_file:
-                                                out_file.write(formula + " " + formula.split("-")[0] + " " + formula[(len(formula.split("-")[0]) + 1):] + " " + str(tar) + "\n")
+                                                out_file.write(formula + " " + str(tar) + "\n")
+#                                                out_file.write(formula + " " + formula.split("-")[0] + " " + formula[(len(formula.split("-")[0]) + 1):] + " " + str(tar) + "\n")
                         except IndexError:
                                 print formula, "is empty"
 
