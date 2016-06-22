@@ -1,4 +1,4 @@
-parallel python collect_examples.py collect.txt {} ::: *-*.txt
+parallel python collect_examples.py collect.txt {} ::: *.txt &
 
 #for file in *Ts.txt
 #do
