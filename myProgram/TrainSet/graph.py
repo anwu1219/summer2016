@@ -36,16 +36,27 @@ def main():
     preprocess_VCG(formula, VCG, num_vars) # Build a VCG
     features = []
     features.append(num_vars) 
+#    print "1 num_vars", num_vars
     features.append(num_clause)
+#    print "2 num_clause", num_clause
+#    print "3 Clause variable ratio",float(num_clause) / num_vars
     features.append(float(num_clause) / num_vars) # Clause variable ratio
-    features += add_stat(VIG.degree().values()) # VIG degree features
+#    print "14-17 VIG degree features",add_stat(VIG.degree().values())[:-1]
+    features += add_stat(VIG.degree().values())[:-1] # VIG degree features
+#    print "4-8 VCG var degree features", add_stat(VCG.degree().values()[:num_vars])
     features += add_stat(VCG.degree().values()[:num_vars])  # VCG var degree features
+#    print "9-13 VCG clause degree features", add_stat(VCG.degree().values()[num_vars:])
     features += add_stat(VCG.degree().values()[num_vars:])  # VCG clause degree features
+#    print "18-20 Occurence of positive and negative literals in each clause", add_stat(get_pos_neg_ratio(formula))[2:]
     features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause
+#    print "21-25 Occurence of positive and negative literals for each variable", add_stat(get_pos_neg_occ(formula, num_vars))
     features += add_stat(get_pos_neg_occ(formula, num_vars))    # Occurence of positive and negative literals for each variable
-    features.append(get_binary(formula, num_clause))    # Ratio of binary clause
-    features += horn_features(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
-    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
+#    print "26-27 Ratio of binary clause", get_binary(formula, num_clause)
+    features += get_binary(formula, num_clause)   # Ratio of binary clause
+#    print "28/-28 29-33/ -29-33 Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features", horn_features(formula, num_vars, num_clause)
+    features += horn_features(formula, num_vars, num_clause)[: -5] # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
+#    print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
+#    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
     features += [SAT]
     with open(sys.argv[3], 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
@@ -104,20 +115,23 @@ def get_pos_neg_occ(formula, num_vars):
             if ele > 0:
                 dic[abs(ele)][1] = dic[abs(ele)][1] + 1
     for i in range(num_vars + 1)[1:]:
-        lst.append(float(dic[i][1]) / (dic[i][0] + dic[i][1]))
+        lst.append(float(dic[i][1]) / dic[i][0])
     return lst
 
 
 
 def get_binary(formula, num_clause):
     """
-    get the ratio of binary clauses
+    get the ratio of binary clauses, and ternary clauses
     """
-    num = 0
+    num_bi = 0
+    num_ter = 0
     for line in formula:
         if len(line) == 2:
-            num += 1
-    return float(num) / num_clause
+            num_bi += 1
+        if len(line) == 3:
+            num_ter += 1
+    return [float(num_bi) / num_clause, float(num_ter) / num_clause]
 
 
 #--------------------------------------------horn-related features-----------------------------------------#
