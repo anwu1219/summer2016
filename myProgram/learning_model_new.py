@@ -71,9 +71,9 @@ print np.sum(Y), "negative samples out of", len(Y), "in train set"
 print np.sum(Y_test), "negative samples out of", len(Y_test), "in test set"
 
 a = [1e-6, 1e-5, 1e-4, 0.001,0.01, 0.1, 1.0, 10.0,100]
-clf1 = RandomForestClassifier(n_estimators = 200,  n_jobs = -1)
+clf1 = RandomForestClassifier(n_estimators = 100,  n_jobs = -1)
 #clf1 = KNeighborsClassifier(n_neighbors = 39, n_jobs = -1, weights = 'distance')
-clf1 = LogisticRegression()
+#clf1 = LogisticRegression()
 
 # #clf1 = LinearSVC()
 # print "Learning..."
