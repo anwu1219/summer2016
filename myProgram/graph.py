@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 import scipy as sp
 import math
-import os
+from pulp import *
 #import csv
 #import matplotlib.pyplot as plt
 
@@ -18,6 +18,7 @@ This file takes in a dimacs file, calculates the features of it and stores them 
 """
 def main():
     source = sys.argv[1]
+    SAT = sys.argv[2]
     cnf = open(source)
     content = cnf.readlines()
     while content[0].split()[0] == 'c':
@@ -61,31 +62,10 @@ def main():
     # print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
     features.append(get_LPSLACK_coeff_variation(formula, num_vars, num_clause))
-    features += [isSat(sys.argv[1])]
-    if features[-1] == -1:
-        return
-    if len(features) != 39:
-        print len(features)
-        print "shoot! The feature number doesn't match!"
-    with open(sys.argv[2], 'a') as out_file:
+    features += [SAT]
+    with open(sys.argv[3], 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
 
-#--------------------------------------------Target extraction methods--------------------------------------# 
-
-def isSat(filename):
-    """
-    Opens the solution file and check the satisfiability of the formula
-    """
-    if os.path.isfile(filename.split()[0] + "Sol.txt"):
-        with open(filename.split()[0]+"Sol.txt", 'r') as tar_file:
-            try:
-                if "UNSAT" in tar_file.readlines()[0]:
-                    return 1
-                else:
-                    return 0
-            except IndexError:
-                print filename, "is empty"
-                return -1
 
 #--------------------------------------------feature extraction methods-------------------------------------#
 def preprocess_VIG(formula, VIG):
@@ -233,41 +213,52 @@ def get_modularities(VIG, VCG, graphic):
 #-------------------------------------------LPSLACK coeff variation----------------------------------------#
 
 def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
-    v = [0.0] * num_vars
+    v = [0.0] * (num_vars + 1)
     for line in formula:
         for ele in line:
             if ele > 0:
-                v[ele - 1] -= 1
+                v[ele] += 1
             else:
-                v[abs(ele) - 1] += 1
-    #print v, num_clause
-    A_ub = []
+                v[abs(ele)] -= 1
+
+    LPVar = [0]
+    for i in range(1, num_vars + 1):
+        LPVar.append(LpVariable("x%d" %i, 0, 1))
+
+    prob = LpProblem("problem", LpMaximize)
+     
+
     for i in range(num_clause):
-        A_ub.append([0.0] * num_vars)
-    b = [-1.0] * num_clause
-    for i in range(num_clause):
-        for ele in formula[i]:
-            if ele > 0:
-                A_ub[i][ele - 1] -= 1
-            if ele < 0:
-                A_ub[i][abs(ele) - 1] += 1
-                b[i] += 1
-    bounds = (0.0, 1.0)
-    v_star = sp.optimize.linprog(c = v, A_ub = A_ub, b_ub= b, bounds = bounds)
-    #print v_star
-    v_star = v_star.x
+        exp = 0
+        for j in range(len(formula[i])):
+            if formula[i][j] < 0:
+                exp = exp + 1 - LPVar[abs(formula[i][j])]
+            else:
+                exp = exp + LPVar[abs(formula[i][j])]
+        exp = exp >= 1
+        prob += exp 
+
+    exp = 0
+    for i in range(1, num_vars + 1):
+        exp = exp + v[i] * LPVar[i]
+    prob += exp
+    prob.solve()
+    # solve the problem
+    #print LpStatus[status]
+    lst = []
+    for i in range(1, len(LPVar)):
+        lst.append(LPVar[i].varValue)
+
+#    if math.isnan(v_star):
+#        return 0
+    for i in range(len(lst)):
+        lst[i] = min(float(lst[i]), 1 - float(lst[i]))
+    if np.mean == 0:
+        return 1
+    return np.std(lst) / np.mean(lst)
 
 
-    try:
-        if math.isnan(v_star):
-            return 0
-    except TypeError:
-        for i in range(len(v_star)):
-            v_star[i] = min(v_star[i], 1 - v_star[i])
-    if np.mean(v_star) == 0:
-        return 0
-    result = np.std(v_star) / np.mean(v_star)
-    return result
+
 
 #-----------------------------------------------statistics-------------------------------------------------#
 
