@@ -23,7 +23,6 @@ def search_for_best_features(X, X_test, X_val, Y, Y_test, Y_val, clf):
 		new_X_val1 = np.append(new_X_val, X_val[:, i : i + 1], axis=1)
 		current_score = clf.fit(new_X1, Y).score(new_X_test1, Y_test)
 		if (current_score > last_score):
-                        print current_score
 			new_X = new_X1
 			new_X_test = new_X_test1
 			new_X_val = new_X_val1
@@ -51,7 +50,7 @@ with open(SAT_FILE_NAME, 'r') as in_file:
 with open(UNSAT_FILE_NAME, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
-                line =line.split()[1:] # skip the formula identifier                                                                                
+                line =line.split()[1:] # skip the formula identifier                                                        
                 data.append(map(float, line))
 
 np.random.shuffle(data)
