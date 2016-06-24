@@ -64,6 +64,9 @@ def main():
     features += [isSat(sys.argv[1])]
     if features[-1] == -1:
         return
+    if len(features) != 39:
+        print len(features)
+        print "shoot! The feature number doesn't match!"
     with open(sys.argv[2], 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
 
