@@ -2,12 +2,13 @@ from sklearn import metrics
 import numpy as np
 from sklearn.linear_model import RidgeCV, LogisticRegression
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, GradientBoostingRegressor
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn import preprocessing
 import sys
-
+from sklearn.preprocessing import PolynomialFeatures
 
 def search_for_best_features(X, X_test, X_val, Y, Y_test, Y_val, clf):
 	new_X = X[:, 0:1]
@@ -53,7 +54,7 @@ with open(UNSAT_FILE_NAME, 'r') as in_file:
                 line =line.split()[1:] # skip the formula identifier                                                                                
                 data.append(map(float, line))
 
-shuffle(data)
+np.random.shuffle(data)
 train_index = int(0.8 * len(data))
 
 for line in data[:train_index]:
@@ -63,21 +64,24 @@ for line in data[train_index:]:
         X_test.append(line[:-1])
         Y_test.append(line[-1])
 
-scaler = preprocessing.StandardScaler().fit(X)
-X = scaler.transform(X)
-shuffle(X)
-X_test = scaler.transform(X_test)
+#scaler = preprocessing.StandardScaler().fit(X)
+#X = scaler.transform(X)
+#X_test = scaler.transform(X_test)
 print np.sum(Y), "negative samples out of", len(Y), "in train set"
 print np.sum(Y_test), "negative samples out of", len(Y_test), "in test set"
-
+#poly = PolynomialFeatures(2)
+#poly.fit_transform(X)
+#poly.fit_transform(X_test)
 a = [1e-6, 1e-5, 1e-4, 0.001,0.01, 0.1, 1.0, 10.0,100]
-clf1 = RandomForestClassifier(n_estimators = 100,  n_jobs = -1)
+clf1 = RandomForestClassifier(n_estimators = 400,  n_jobs = -1)
+#clf1 = DecisionTreeClassifier()
 #clf1 = KNeighborsClassifier(n_neighbors = 39, n_jobs = -1, weights = 'distance')
 #clf1 = LogisticRegression()
 
-# #clf1 = LinearSVC()
+#clf1 = LinearSVC()
 # print "Learning..."
 clf1.fit(X, Y)
+print "Feature importance:", clf1.feature_importances_ 
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
 # #predict2 = clf2.score(X_test, Y_test)
