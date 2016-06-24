@@ -14,7 +14,6 @@ This file takes in a dimacs file, calculates the features of it and stores them 
 """
 def main():
     source = sys.argv[1]
-    SAT = sys.argv[2]
     cnf = open(source)
     content = cnf.readlines()
     while content[0].split()[0] == 'c':
@@ -57,8 +56,7 @@ def main():
     features += horn_features(formula, num_vars, num_clause)[: -5] # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
 #    print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
 #    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
-    features += [SAT]
-    with open(sys.argv[3], 'a') as out_file:
+    with open(sys.argv[2], 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
 
 
@@ -115,7 +113,10 @@ def get_pos_neg_occ(formula, num_vars):
             if ele > 0:
                 dic[abs(ele)][1] = dic[abs(ele)][1] + 1
     for i in range(num_vars + 1)[1:]:
-        lst.append(float(dic[i][1]) / dic[i][0])
+        try:
+            lst.append(float(dic[i][1]) / dic[i][0])
+        except ZeroDivisionError:
+            lst.append(0)
     return lst
 
 
