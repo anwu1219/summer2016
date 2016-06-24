@@ -57,10 +57,10 @@ np.random.shuffle(data)
 train_index = int(0.8 * len(data))
 
 for line in data[:train_index]:
-        X.append(line[:-2])
+        X.append(line[:-1])
         Y.append(line[-1])
 for line in data[train_index:]:
-        X_test.append(line[:-2])
+        X_test.append(line[:-1])
         Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
