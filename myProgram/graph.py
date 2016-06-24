@@ -253,7 +253,7 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
 #        return 0
     for i in range(len(lst)):
         lst[i] = min(float(lst[i]), 1 - float(lst[i]))
-    if np.mean == 0:
+    if np.mean(lst) == 0:
         return 1
     return np.std(lst) / np.mean(lst)
 
