@@ -53,7 +53,7 @@ with open(UNSAT_FILE_NAME, 'r') as in_file:
                 line =line.split()[1:] # skip the formula identifier                                                        
                 data.append(map(float, line))
 
-np.random.shuffle(data)
+#np.random.shuffle(data)
 train_index = int(0.8 * len(data))
 
 for line in data[:train_index]:
