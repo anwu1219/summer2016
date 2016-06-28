@@ -1,0 +1,8 @@
+import io
+import sys
+
+
+original_formula = sys.argv[0]
+answer_file = sys.argv[1]
+
+with open()
