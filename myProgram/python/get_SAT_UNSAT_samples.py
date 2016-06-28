@@ -18,7 +18,7 @@ def main():
                 content.append(map(int, line.split()))
             else:
                 content.append(line)
-    with open(original_cnf.split(".")[0] + ".txt", 'r') as in_file:
+    with open(original_cnf.split(".")[0] + ".sol", 'r') as in_file:
         contentS = in_file.readlines()
     if "UNSAT" in contentS[0]:
         UNSAT_original_formula(original_cnf, content)
@@ -27,7 +27,7 @@ def main():
     else: 
         solution = map(int, contentS[1].split())
         write_UNSAT(original_cnf, copy.deepcopy(content))
-#        write_SAT_file(original_cnf, content, solution[:-1])
+        write_SAT_file(original_cnf, content, solution[:-1])
 
 
 def UNSAT_original_formula(original_cnf, content):
@@ -91,7 +91,7 @@ def write_SAT_file(original_cnf, in_content, solution):
         out_file.write(new_dimacs[0])
         for line in new_dimacs[1:]:
             out_file.write(' '.join(map(str,line)) + "\n")
-    with open(new_original_cnf.split('.')[0]+".txt", 'w') as out_file:
+    with open(new_original_cnf.split('.')[0]+".sol", 'w') as out_file:
         out_file.write(" ".join(map(str, solution)) + "\n")
 
     write_SAT_file(new_original_cnf, new_dimacs, solution)
