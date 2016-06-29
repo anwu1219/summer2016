@@ -34,11 +34,17 @@ def main():
                                         break;
                         os.remove(in_name.split('.')[0] + '_temp.dimacs')
         elif action == "-c": # Generates .ulit files for a formula.
-                in_name = sys.argv[2]
+                if sys.argv[2] == '-v':
+                        remove = False
+                        in_name = sys.argv[3]
+                else:
+                        remove = True
+                        in_name = sys.argv[2]
                 out = open(in_name.split('.')[0]+'.log','w')
                 subprocess.call(["/home/anwu/minisatP/core/minisat", in_name], stdout=out)
                 out.close()
-                sys.remove(out)
+                if remove:
+                        os.remove(in_name.split('.')[0]+'.log')
         else:
                 print "Please enter flags -s/-m/-c"
 

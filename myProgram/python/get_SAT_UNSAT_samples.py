@@ -1,11 +1,10 @@
-
 import os
 import sys
 import random
 import copy
 
 """
-This file is used to obtain training data.
+This file is used to obtain training data, it takes in a dimacs file
 """
 def main():
     content = []
@@ -21,7 +20,7 @@ def main():
     with open(original_cnf.split(".")[0] + ".sol", 'r') as in_file:
         contentS = in_file.readlines()
     if "UNSAT" in contentS[0]:
-        UNSAT_original_formula(original_cnf, content)
+        write_UNSAT(original_cnf, copy.deepcopy(content))
     elif "INDET" in contentS[0]:
         pass
     else: 
@@ -30,22 +29,16 @@ def main():
         write_SAT_file(original_cnf, content, solution[:-1])
 
 
-def UNSAT_original_formula(original_cnf, content):
-    return
-
-
-
 
 def write_UNSAT(original_cnf, content):
     i = 1
     unsat_lit_file = original_cnf.split('.')[0]+ '-' + str(i) + ".ulit"
     while(os.path.isfile(unsat_lit_file)):
-        print i
         with open(unsat_lit_file, 'r') as in_answer:
             first = in_answer.readline().split()
             second = in_answer.readline().split()
-            if len(second) !=0 : 
-                lits = map(int, first[: len(second) + 1])[1:]
+            if len(second) != 0: 
+                lits = map(int, first[: len(second) + 1])
             else:
                 i += 1
                 unsat_lit_file = original_cnf.split('.')[0]+ '-' + str(i) + ".ulit"
@@ -62,7 +55,7 @@ def write_UNSAT_file(filename, content, lits):
     Takes in a satisfiable formula, and takes in a wrong lits assignment, generates a .dimacs if the resulting formula does not contain empty clauses  
     """
     while len(lits) > 0:
-        new_dimacs, lits = update_content(content, lits)
+        new_dimacs, lits = update_content(content, lits, 0)
         content, lits = unit_propagation(new_dimacs, lits)
        #content, lits = shrink_formula(new_dimacs, lits)
     if not contains_empty(content):
@@ -78,7 +71,7 @@ def write_UNSAT_file(filename, content, lits):
 def write_SAT_file(original_cnf, in_content, solution):
     if len(solution) < 1:
         return
-    new_dimacs, solution = update_content(in_content, solution)
+    new_dimacs, solution = update_content(in_content, solution, -1)
     new_dimacs, solution = unit_propagation(new_dimacs, solution)
     new_dimacs, solution = shrink_formula(new_dimacs, solution)
 
@@ -99,8 +92,8 @@ def write_SAT_file(original_cnf, in_content, solution):
 
 #---------------------------------------- Helper methods ----------------------------------------#
 
-def update_content(content, solution):
-    lit = solution[-1]
+def update_content(content, solution, index):
+    lit = solution[index]
     solution.remove(lit)
     deleted_clause = 0
     new_dimacs = [content[0],[]]
@@ -108,6 +101,7 @@ def update_content(content, solution):
         if lit not in line:
             if -lit in line:
                 line.remove(-lit)
+            line = update_line(line, abs(lit))
             new_dimacs.append(line)
         else:
             deleted_clause += 1
@@ -115,8 +109,6 @@ def update_content(content, solution):
     info[2] = int(info[2]) - 1
     info[3] = int(info[3]) - deleted_clause
     new_dimacs[1] = info  # update the number of clauses 
-    for i in range(2, len(new_dimacs)):
-        new_dimacs[i] = update_line(new_dimacs[i], abs(lit))
     solution = update_sol(solution, abs(lit))
     return new_dimacs, solution
 
@@ -156,7 +148,8 @@ def unit_propagation(content, solution):
             if lit in solution:
                 solution.remove(lit)
             else:
-                print "can't find", lit
+                pass
+                #print "Can't find", lit
             solution = update_sol(solution, abs(lit))
             info = content[1]
             info[2] = int(info[2]) - 1
@@ -177,7 +170,7 @@ def shrink_formula(content, solution):
                 else:
                     solution.remove(-ele)
             except ValueError:
-                print ""
+                pass;
             solution = update_sol(solution, abs(ele))
             content[1][2] -= 1
             return shrink_formula(content, solution)
