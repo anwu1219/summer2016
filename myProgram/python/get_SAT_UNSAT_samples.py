@@ -11,12 +11,13 @@ def main():
     original_cnf = sys.argv[1]
     with open(original_cnf, 'r') as in_file: # Read a dimacs file
         for line in in_file:
-            if len(content) == 1:
-                content.append(line.split())
+            if line[0] == 'c':
+                pass
             elif len(content) >= 2:
                 content.append(map(int, line.split()))
             else:
-                content.append(line)
+                content.append('c generated dimacs file\n')
+                content.append(line.split())
     with open(original_cnf.split(".")[0] + ".sol", 'r') as in_file:
         contentS = in_file.readlines()
     if "UNSAT" in contentS[0]:
