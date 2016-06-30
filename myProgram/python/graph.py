@@ -60,7 +60,7 @@ def main():
     # print "26-27 Ratio of binary clause", get_binary(formula, num_clause)
     features += get_binary(formula, num_clause)   # Ratio of binary clause
     # print "28/-28 29-33/ -29-33 Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features", horn_features(formula, num_vars, num_clause)
-    features += horn_features(formula, num_vars, num_clause)[: -5] # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
+    features += horn_features(formula, num_vars, num_clause)[: -4] # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
     # print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
     # print "21-25 Occurence of positive and negative literals for each variable", add_stat(get_pos_neg_occ(formula, num_vars))  
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable 
@@ -136,8 +136,6 @@ def get_pos_neg_occ(formula, num_vars):
         else:
             print "Can't find variable", i, sys.argv[1]
             num_vars -= 1
-    while 0 in lst:
-        lst.remove(0)
     return add_stat(lst) + [POSNEG_ratio_var_mean * 2 / num_vars]
 
 
@@ -164,10 +162,6 @@ def horn_features(formula, num_vars, num_clause):
     Formats the outputs of ratio_horn_clauses(), returns processed 10 features related to horn clauses
     """
     ratio_horn, ratio_rev_horn, lst = ratio_horn_clauses(formula, num_vars, num_clause)
-    while 0 in lst[0]:
-        lst[0].remove(0)
-    while 0 in lst[1]:
-        lst[1].remove(0)
     horn_var_feats = add_stat(lst[0])
     rev_horn_var_feats = add_stat(lst[1])
     return [ratio_horn, ratio_rev_horn] + horn_var_feats + rev_horn_var_feats
@@ -287,7 +281,7 @@ def add_stat(lst):
     """
     add max, min, mean, std of the give statistics to the features list.
     """
-    return [max(lst),min(lst), np.mean(lst), np.std(lst), sp.stats.entropy(lst)]
+    return [max(lst),min(lst), np.mean(lst), np.std(lst)]
     
 if __name__ == "__main__":
     main()
