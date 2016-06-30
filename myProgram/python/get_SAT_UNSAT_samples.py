@@ -68,7 +68,7 @@ def write_UNSAT_file(filename, content, lits):
 
 
 def write_SAT(original_cnf, content, solution):
-    write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1])
+    write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1], len(solution))
     i = 1
     other_sol_file = original_cnf.split('.')[0]+ '~' + str(i) + ".sol"
     while(os.path.isfile(other_sol_file)):
@@ -83,8 +83,8 @@ def write_SAT(original_cnf, content, solution):
 
 
 
-def write_SAT_file(original_cnf, in_content, solution):
-    if len(solution) < 15:
+def write_SAT_file(original_cnf, in_content, solution, original_len):
+    if len(solution) < original_len * 0.5:
         return
     new_dimacs, solution = update_content(in_content, solution, 0)
     new_dimacs, solution = unit_propagation(new_dimacs, solution)
@@ -101,7 +101,7 @@ def write_SAT_file(original_cnf, in_content, solution):
             out_file.write(' '.join(map(str,line)) + "\n")
     with open(new_original_cnf.split('.')[0]+".sol", 'w') as out_file:
         out_file.write(" ".join(map(str, solution)) + "\n")
-    write_SAT_file(new_original_cnf, new_dimacs, solution)
+    write_SAT_file(new_original_cnf, new_dimacs, solution, original_len)
 
 
 #---------------------------------------- Helper methods ----------------------------------------#

@@ -136,7 +136,8 @@ def get_pos_neg_occ(formula, num_vars):
         else:
             print "Can't find variable", i, sys.argv[1]
             num_vars -= 1
-
+    while 0 in lst:
+        lst.remove(0)
     return add_stat(lst) + [POSNEG_ratio_var_mean * 2 / num_vars]
 
 
@@ -163,6 +164,10 @@ def horn_features(formula, num_vars, num_clause):
     Formats the outputs of ratio_horn_clauses(), returns processed 10 features related to horn clauses
     """
     ratio_horn, ratio_rev_horn, lst = ratio_horn_clauses(formula, num_vars, num_clause)
+    while 0 in lst[0]:
+        lst[0].remove(0)
+    while 0 in lst[1]:
+        lst[1].remove(0)
     horn_var_feats = add_stat(lst[0])
     rev_horn_var_feats = add_stat(lst[1])
     return [ratio_horn, ratio_rev_horn] + horn_var_feats + rev_horn_var_feats
