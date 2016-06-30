@@ -104,6 +104,8 @@ def get_pos_neg_ratio(formula):
                 if ele > 0:
                     pos += 1
             lst.append(float(pos) / len(line))
+        else:
+            print "Line is empty", sys[1]
     return lst
 
 
@@ -130,6 +132,7 @@ def get_pos_neg_occ(formula, num_vars):
         if dic[i][0] != 0:
             POSNEG_ratio_var_mean += abs((0.5 - dic[i][1]) / dic[i][0])
         else:
+            print "Can't find variable", i, sys.argv[1]
             num_vars -= 1
 
     return add_stat(lst) + [POSNEG_ratio_var_mean * 2 / num_vars]
@@ -259,7 +262,11 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
 #    if math.isnan(v_star):
 #        return 0
     for i in range(len(lst)):
-        lst[i] = min(float(lst[i]), 1 - float(lst[i]))
+        try:
+            lst[i] = min(float(lst[i]), 1 - float(lst[i]))
+        except TypeError:
+            print "Type error in LPSlack", sys.argv[1]
+            return [0, 0]
     if np.mean(lst) == 0:
         return [0, 0]
     return [np.std(lst) / np.mean(lst), np.mean(lst)]
