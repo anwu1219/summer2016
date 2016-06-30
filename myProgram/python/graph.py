@@ -34,6 +34,8 @@ def main():
     if num_vars == 0:
         return
     num_clause = int(parameters[3]) # AW Number of variables
+    if num_clause == 0:
+        return 
     VIG = nx.Graph() 
     VIG.add_nodes_from(range(num_vars+1)[1:])
     VCG = nx.Graph()
