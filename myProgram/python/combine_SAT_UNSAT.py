@@ -11,6 +11,7 @@ with open(file_2, 'r') as in_file:
         content.append(line)
 with open(sys.argv[3], 'w') as out_file:
     for line in content:
-        out_file.write(line)
+        if 'n' not in line:
+            out_file.write(line)
 
 
