@@ -58,7 +58,7 @@ def write_UNSAT_file(filename, content, lits):
     while len(lits) > 0:
         new_dimacs, lits = update_content(content, lits, 0)
         content, lits = unit_propagation(new_dimacs, lits)
-        content, sol = shrink_formula(new_dimacs, range(content[1][2] + 1)[1:])
+        content, sol = shrink_formula(content, range(content[1][2] + 1)[1:])
     if not contains_empty(content):
         with open("u" + filename + ".dimacs", 'w') as out_file:
             out_file.write(content[0]) # The first line has change line itself

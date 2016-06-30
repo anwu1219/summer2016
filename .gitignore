@@ -13,8 +13,8 @@ myProgram/harderSat/
 myProgram/harderSat1/
 myProgram/TrainSet/
 myProgram/TestSet/
-myProgram/SAT_NEW/
-myProgram/UNSAT_NEW/
+myProgram/SAT_New/
+myProgram/UNSAT_New/
 
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
