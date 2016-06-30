@@ -27,7 +27,7 @@ def main():
     else:
         solution = map(int, contentS[1].split())
         write_UNSAT(original_cnf, copy.deepcopy(content))
-        write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1])
+        write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1], len(solution))
         
 
 
@@ -75,7 +75,7 @@ def write_SAT(original_cnf, content, solution):
         with open(unsat_lit_file, 'r') as in_answer:
             solution = map(int, in_answer.readlines()[1].split())
         original_cnf = original_cnf.split('.') + '~' + str(i) + '.dimacs'
-        write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1])
+        write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1], len(solution))
         i += 1
         other_sol_file = original_cnf.split('.')[0]+ '~' + str(i) + ".sol"
 
@@ -84,7 +84,7 @@ def write_SAT(original_cnf, content, solution):
 
 
 def write_SAT_file(original_cnf, in_content, solution, original_len):
-    if len(solution) < original_len * 0.5:
+    if len(solution) < original_len * 0.6:
         return
     new_dimacs, solution = update_content(in_content, solution, 0)
     new_dimacs, solution = unit_propagation(new_dimacs, solution)
