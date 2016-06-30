@@ -23,16 +23,16 @@ def main():
                         i = 1
                         add_line(in_name, out_name)
                         while i <= times:
-                                out_name = out_name.split('.')[0].split('-')[0] + "-" + str(i) + '.sol'
+                                out_name = out_name.split('.')[0].split('~')[0] + "~" + str(i) + '.sol'
                                 out = open(out_name.split('.')[0]+'.log','w')
-                                subprocess.call(["/home/anwu/minisat/core/minisat", in_name.split('.')[0] + '_temp.dimacs', out_name], stdout=out)
+                                subprocess.call(["/home/anwu/minisat/core/minisat", in_name.split('.')[0] + '~temp.dimacs', out_name], stdout=out)
                                 out.close()
                                 if (os.path.isfile(out_name) and is_sat(out_name)): # If Solved
-                                        add_line(in_name.split('.')[0] + '_temp.dimacs', out_name)
+                                        add_line(in_name.split('.')[0] + '~temp.dimacs', out_name)
                                         i += 1;
                                 else:
                                         break;
-                        os.remove(in_name.split('.')[0] + '_temp.dimacs')
+                        os.remove(in_name.split('.')[0] + '~temp.dimacs')
         elif action == "-c": # Generates .ulit files for a formula.
                 if sys.argv[2] == '-v':
                         remove = False
@@ -68,7 +68,7 @@ def add_line(in_name, out_name):
                 for i in range(len(old_sol)):
                         old_sol[i] = -old_sol[i]
                 content.append(" ".join(map(str, old_sol)) + "\n")
-        with open(in_name.split('.')[0].split('_')[0] + '_temp.dimacs', 'w') as out_file:
+        with open(in_name.split('.')[0].split('~')[0] + '~temp.dimacs', 'w') as out_file:
                 for line in content:
                         out_file.write(line)
 

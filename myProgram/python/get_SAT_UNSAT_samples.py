@@ -24,16 +24,16 @@ def main():
         write_UNSAT(original_cnf, copy.deepcopy(content))
     elif "INDET" in contentS[0]:
         pass
-    else: 
+    else:
         solution = map(int, contentS[1].split())
         write_UNSAT(original_cnf, copy.deepcopy(content))
-        write_SAT_file(original_cnf, content, solution[:-1])
-
+        write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1])
+        
 
 
 def write_UNSAT(original_cnf, content):
     i = 1
-    unsat_lit_file = original_cnf.split('.')[0]+ '-' + str(i) + ".ulit"
+    unsat_lit_file = original_cnf.split('.')[0]+ '_' + str(i) + ".ulit"
     while(os.path.isfile(unsat_lit_file)):
         with open(unsat_lit_file, 'r') as in_answer:
             first = in_answer.readline().split()
@@ -42,12 +42,12 @@ def write_UNSAT(original_cnf, content):
                 lits = map(int, first[: len(second) + 1])
             else:
                 i += 1
-                unsat_lit_file = original_cnf.split('.')[0]+ '-' + str(i) + ".ulit"
+                unsat_lit_file = original_cnf.split('.')[0]+ '_' + str(i) + ".ulit"
                 continue
         new_content = copy.deepcopy(content)
         write_UNSAT_file(unsat_lit_file.split(".")[0], new_content, lits)
         i += 1
-        unsat_lit_file = original_cnf.split('.')[0]+ '-' + str(i) + ".ulit"
+        unsat_lit_file = original_cnf.split('.')[0]+ '_' + str(i) + ".ulit"
 
 
 
@@ -66,20 +66,34 @@ def write_UNSAT_file(filename, content, lits):
                 out_file.write(' '.join(map(str,line)) + "\n")
 
 
-    
+
+def write_SAT(original_cnf, content, solution):
+    write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1])
+    i = 1
+    other_sol_file = original_cnf.split('.')[0]+ '~' + str(i) + ".sol"
+    while(os.path.isfile(other_sol_file)):
+        with open(unsat_lit_file, 'r') as in_answer:
+            solution = map(int, in_answer.readlines()[1].split())
+        original_cnf = original_cnf.split('.') + '~' + str(i) + '.dimacs'
+        write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1])
+        i += 1
+        other_sol_file = original_cnf.split('.')[0]+ '~' + str(i) + ".sol"
+
+
+
 
 
 def write_SAT_file(original_cnf, in_content, solution):
-    if len(solution) < 1:
+    if len(solution) < 15:
         return
-    new_dimacs, solution = update_content(in_content, solution, -1)
+    new_dimacs, solution = update_content(in_content, solution, 0)
     new_dimacs, solution = unit_propagation(new_dimacs, solution)
     new_dimacs, solution = shrink_formula(new_dimacs, solution)
 
-    if len(original_cnf.split('-')) == 1:
-        new_original_cnf = original_cnf.split('.')[0]+ '-' + "1.dimacs"
+    if len(original_cnf.split('_')) == 1:
+        new_original_cnf = original_cnf.split('.')[0]+ '_' + "1.dimacs"
     else:
-        new_original_cnf = original_cnf.split('-')[0]+ '-' + str (int (original_cnf.split('-')[1].split('.')[0]) + 1) + ".dimacs"
+        new_original_cnf = original_cnf.split('_')[0]+ '_' + str (int (original_cnf.split('_')[1].split('.')[0]) + 1) + ".dimacs"
 
     with open(new_original_cnf, 'w') as out_file:
         out_file.write(new_dimacs[0])
@@ -87,7 +101,6 @@ def write_SAT_file(original_cnf, in_content, solution):
             out_file.write(' '.join(map(str,line)) + "\n")
     with open(new_original_cnf.split('.')[0]+".sol", 'w') as out_file:
         out_file.write(" ".join(map(str, solution)) + "\n")
-
     write_SAT_file(new_original_cnf, new_dimacs, solution)
 
 
