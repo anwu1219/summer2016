@@ -18,7 +18,7 @@ def main():
             else:
                 content.append('c generated dimacs file\n')
                 content.append(line.split())
-    with open(original_cnf.split(".")[0] + ".sol", 'r') as in_file:
+    with open(original_cnf.split(".")[0] + ".osol", 'r') as in_file:
         contentS = in_file.readlines()
     if "UNSAT" in contentS[0]:
         write_UNSAT(original_cnf, copy.deepcopy(content))
@@ -26,7 +26,7 @@ def main():
         pass
     else:
         solution = map(int, contentS[1].split())
-        write_UNSAT(original_cnf, copy.deepcopy(content))
+#        write_UNSAT(original_cnf, copy.deepcopy(content))
         write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1], len(solution))
         
 
@@ -99,8 +99,8 @@ def write_SAT_file(original_cnf, in_content, solution, original_len):
             out_file.write(new_dimacs[0])
             for line in new_dimacs[1:]:
                 out_file.write(' '.join(map(str,line)) + "\n")
-        with open(new_original_cnf.split('.')[0]+".sol", 'w') as out_file:
-            out_file.write(" ".join(map(str, solution)) + "\n")
+#        with open(new_original_cnf.split('.')[0]+".sol", 'w') as out_file:
+#            out_file.write(" ".join(map(str, solution)) + "\n")
         write_SAT_file(new_original_cnf, new_dimacs, solution, original_len)
     else:
         return 
