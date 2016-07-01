@@ -50,7 +50,7 @@ def main():
     # print "3 Clause variable ratio",float(num_clause) / num_vars
     features.append(float(num_clause) / num_vars) # Clause variable ratio
     # print "14-17 VIG degree features",add_stat(VIG.degree().values())[:-1]
-    features += add_stat(VIG.degree().values())[:-1] # VIG degree features
+    features += add_stat(VIG.degree().values()) # VIG degree features
     # print "4-8 VCG var degree features", add_stat(VCG.degree().values()[:num_vars])
     features += add_stat(VCG.degree().values()[:num_vars])  # VCG var degree features
     # print "9-13 VCG clause degree features", add_stat(VCG.degree().values()[num_vars:])
