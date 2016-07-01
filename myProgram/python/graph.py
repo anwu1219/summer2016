@@ -4,8 +4,13 @@ sys.path.append("/Library/Python/2.7/site-packages")
 import community
 import networkx as nx
 import numpy as np
+import scipy as sp
+import math
+from pulp import *
 #import csv
 #import matplotlib.pyplot as plt
+
+
 
 """
 This file takes in a dimacs file, calculates the features of it and stores them in a 
@@ -26,7 +31,11 @@ def main():
     parameters = content[0].split() 
     formula = content[1:] # The clause part of the dimacs file
     num_vars = int(parameters[2]) # AW Number of variables
+    if num_vars == 0:
+        return
     num_clause = int(parameters[3]) # AW Number of variables
+    if num_clause == 0:
+        return 
     VIG = nx.Graph() 
     VIG.add_nodes_from(range(num_vars+1)[1:])
     VCG = nx.Graph()
@@ -35,16 +44,28 @@ def main():
     preprocess_VCG(formula, VCG, num_vars) # Build a VCG
     features = []
     features.append(num_vars) 
+    # print "1 num_vars", num_vars
     features.append(num_clause)
+    # print "2 num_clause", num_clause
+    # print "3 Clause variable ratio",float(num_clause) / num_vars
     features.append(float(num_clause) / num_vars) # Clause variable ratio
+    # print "14-17 VIG degree features",add_stat(VIG.degree().values())[:-1]
     features += add_stat(VIG.degree().values()) # VIG degree features
+    # print "4-8 VCG var degree features", add_stat(VCG.degree().values()[:num_vars])
     features += add_stat(VCG.degree().values()[:num_vars])  # VCG var degree features
+    # print "9-13 VCG clause degree features", add_stat(VCG.degree().values()[num_vars:])
     features += add_stat(VCG.degree().values()[num_vars:])  # VCG clause degree features
+    # print "18-20 Occurence of positive and negative literals in each clause", add_stat(get_pos_neg_ratio(formula))[2:]
     features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause
-    features += add_stat(get_pos_neg_occ(formula, num_vars))    # Occurence of positive and negative literals for each variable
-    features.append(get_binary(formula, num_clause))    # Ratio of binary clause
-    features += horn_features(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
+    # print "26-27 Ratio of binary clause", get_binary(formula, num_clause)
+    features += get_binary(formula, num_clause)   # Ratio of binary clause
+    # print "28/-28 29-33/ -29-33 Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features", horn_features(formula, num_vars, num_clause)
+    features += horn_features(formula, num_vars, num_clause)[: -4] # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
+    # print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
+    # print "21-25 Occurence of positive and negative literals for each variable", add_stat(get_pos_neg_occ(formula, num_vars))  
+    features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable 
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
+    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
     features += [SAT]
     with open(sys.argv[3], 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
@@ -75,15 +96,18 @@ def preprocess_VCG(formula, VCG, num_vars):
     
 def get_pos_neg_ratio(formula):
     """ 
-    get the ratio of positive occurrences of each literal
+    get the ratio of positive occurrences of each literal at each line
     """
     lst = []
     for line in formula:
-        pos = 0
-        for ele in line:
-            if ele > 0:
-                pos += 1
-        lst.append(float(pos) / len(line))
+        if len(line) != 0:
+            pos = 0
+            for ele in line:
+                if ele > 0:
+                    pos += 1
+            lst.append(float(pos) / len(line))
+        else:
+            print "Line is empty", sys[1]
     return lst
 
 
@@ -103,20 +127,31 @@ def get_pos_neg_occ(formula, num_vars):
             if ele > 0:
                 dic[abs(ele)][1] = dic[abs(ele)][1] + 1
     for i in range(num_vars + 1)[1:]:
-        lst.append(float(dic[i][1]) / (dic[i][0] + dic[i][1]))
-    return lst
+        if dic[i][0] != 0:
+            lst.append(float(dic[i][1]) / dic[i][0])
+    POSNEG_ratio_var_mean = 0
+    for i in range(num_vars + 1)[1:]:
+        if dic[i][0] != 0:
+            POSNEG_ratio_var_mean += abs((0.5 - dic[i][1]) / dic[i][0])
+        else:
+            print "Can't find variable", i, sys.argv[1]
+            num_vars -= 1
+    return add_stat(lst) + [POSNEG_ratio_var_mean * 2 / num_vars]
 
 
 
 def get_binary(formula, num_clause):
     """
-    get the ratio of binary clauses
+    get the ratio of binary clauses, and ternary clauses
     """
-    num = 0
+    num_bi = 0
+    num_ter = 0
     for line in formula:
         if len(line) == 2:
-            num += 1
-    return float(num) / num_clause
+            num_bi += 1
+        if len(line) == 3:
+            num_ter += 1
+    return [float(num_bi) / num_clause, float(num_ter) / num_clause]
 
 
 #--------------------------------------------horn-related features-----------------------------------------#
@@ -184,6 +219,60 @@ def get_modularities(VIG, VCG, graphic):
         plt.show()
         features_all = preprocessing.scale(features_all)
     return [mod_VIG, mod_VCG]
+
+
+#-------------------------------------------LPSLACK coeff variation----------------------------------------#
+
+def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
+    v = [0.0] * (num_vars + 1)
+    for line in formula:
+        for ele in line:
+            if ele > 0:
+                v[ele] += 1
+            else:
+                v[abs(ele)] -= 1
+
+    LPVar = [0]
+    for i in range(1, num_vars + 1):
+        LPVar.append(LpVariable("x%d" %i, 0, 1))
+
+    prob = LpProblem("problem", LpMaximize)
+     
+
+    for i in range(num_clause):
+        exp = 0
+        for j in range(len(formula[i])):
+            if formula[i][j] < 0:
+                exp = exp + 1 - LPVar[abs(formula[i][j])]
+            else:
+                exp = exp + LPVar[abs(formula[i][j])]
+        exp = exp >= 1
+        prob += exp 
+
+    exp = 0
+    for i in range(1, num_vars + 1):
+        exp = exp + v[i] * LPVar[i]
+    prob += exp
+    prob.solve()
+    # solve the problem
+    #print LpStatus[status]
+    lst = []
+    for i in range(1, len(LPVar)):
+        lst.append(LPVar[i].varValue)
+
+#    if math.isnan(v_star):
+#        return 0
+    for i in range(len(lst)):
+        try:
+            lst[i] = min(float(lst[i]), 1 - float(lst[i]))
+        except TypeError:
+            print "Type error in LPSlack", sys.argv[1]
+            return [0, 0]
+    if np.mean(lst) == 0:
+        return [0, 0]
+    return [np.std(lst) / np.mean(lst), np.mean(lst)]
+
+
 
 
 #-----------------------------------------------statistics-------------------------------------------------#

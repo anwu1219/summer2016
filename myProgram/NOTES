@@ -1,0 +1,13 @@
+The following data files and all data files used to generate these files contain 33 features--no entropy, and no VIG_deg_std (which is an accident).
+
+data_longer_sat_test2.txt             
+data_longer_sat_train2.txt            
+data_longer_with_original_test1.txt   
+data_longer_with_original_train1.txt  
+data_ordered_test1.txt                
+data_ordered_train1.txt               
+data_ordered_with_original_test1.txt  
+data_ordered_with_original_train1.txt
+data_with_original_test1.txt           
+data_with_original_train1.txt   
+
