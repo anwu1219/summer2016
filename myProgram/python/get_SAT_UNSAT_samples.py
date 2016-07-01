@@ -94,15 +94,16 @@ def write_SAT_file(original_cnf, in_content, solution, original_len):
         new_original_cnf = original_cnf.split('.')[0]+ '_' + "1.dimacs"
     else:
         new_original_cnf = original_cnf.split('_')[0]+ '_' + str (int (original_cnf.split('_')[1].split('.')[0]) + 1) + ".dimacs"
-
-    with open(new_original_cnf, 'w') as out_file:
-        out_file.write(new_dimacs[0])
-        for line in new_dimacs[1:]:
-            out_file.write(' '.join(map(str,line)) + "\n")
-    with open(new_original_cnf.split('.')[0]+".sol", 'w') as out_file:
-        out_file.write(" ".join(map(str, solution)) + "\n")
-    write_SAT_file(new_original_cnf, new_dimacs, solution, original_len)
-
+    if len(solution) >= original_len * 0.5:
+        with open(new_original_cnf, 'w') as out_file:
+            out_file.write(new_dimacs[0])
+            for line in new_dimacs[1:]:
+                out_file.write(' '.join(map(str,line)) + "\n")
+        with open(new_original_cnf.split('.')[0]+".sol", 'w') as out_file:
+            out_file.write(" ".join(map(str, solution)) + "\n")
+        write_SAT_file(new_original_cnf, new_dimacs, solution, original_len)
+    else:
+        return 
 
 #---------------------------------------- Helper methods ----------------------------------------#
 
