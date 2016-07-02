@@ -38,7 +38,7 @@ def single_feature_behavior(X, X_test, Y, Y_test, clf):
                 new_X = np.array(X)[:, i : i + 1]
                 new_X_test = np.array(X_test)[:, i : i + 1]
                 clf.fit(new_X, Y)
-#                print "Feature %d train score:" %(i + 1), clf.score(new_X, Y)
+                print "Feature %d train score:" %(i + 1), clf.score(new_X, Y)
                 print "Feature %d test score:" %(i + 1), clf.score(new_X_test, Y_test)
 
 
@@ -54,17 +54,19 @@ Y_test = []
 with open(TRAIN_FILE_NAME, 'r') as in_file:
 	data_set = in_file.readlines()
 	for line in data_set:
-		line =line.split()[1:] # skip the formula identifier
+		line =line.split()[3:] # skip the formula identifier
 		line = map(float, line)
-                X.append(line[:-1])
+               # X.append(line[-5:-1])
+                X.append([line[0]] + line[12:17] + line[22:-1])
                 Y.append(line[-1])
 
 with open(TEST_FILE_NAME, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
-                line =line.split()[1:] # skip the formula identifier                 
+                line =line.split()[3:] # skip the formula identifier
                 line = map(float, line)
-                X_test.append(line[:-1])
+                #X_test.append(line[-5:-1])
+                X_test.append([line[0]] + line[12:17] + line[22:-1])
                 Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
