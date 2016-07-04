@@ -11,3 +11,10 @@ data_ordered_with_original_train1.txt
 data_with_original_test1.txt           
 data_with_original_train1.txt   
 
+The following data files contains the same features as the files above. However, they should be trained with dimension-unrelated features (15), which is a subset of the features above. On the other hand, the occurrence of formulae with a certain num_var is the same for SAT examples and UNSAT examples. 
+
+data_ordered_balanced_test1.txt               
+data_ordered_balanced_train1.txt              
+data_ordered_balanced_with_original_test1.txt 
+data_ordered_balanced_with_original_train1.txt
+

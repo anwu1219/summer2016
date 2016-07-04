@@ -50,17 +50,17 @@ def main():
     # print "3 Clause variable ratio",float(num_clause) / num_vars
     features.append(float(num_clause) / num_vars) # Clause variable ratio
     # print "14-17 VIG degree features",add_stat(VIG.degree().values())[:-1]
-    features += add_stat(VIG.degree().values()) # VIG degree features
+    features += add_stat_normalized(VIG.degree().values(), num_vars) # VIG degree features
     # print "4-8 VCG var degree features", add_stat(VCG.degree().values()[:num_vars])
-    features += add_stat(VCG.degree().values()[:num_vars])  # VCG var degree features
+    features += add_stat_normalized(VCG.degree().values()[:num_vars], num_vars)  # VCG var degree features
     # print "9-13 VCG clause degree features", add_stat(VCG.degree().values()[num_vars:])
-    features += add_stat(VCG.degree().values()[num_vars:])  # VCG clause degree features
+    features += add_stat_normalized(VCG.degree().values()[num_vars:], num_vars)  # VCG clause degree features
     # print "18-20 Occurence of positive and negative literals in each clause", add_stat(get_pos_neg_ratio(formula))[2:]
     features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause
     # print "26-27 Ratio of binary clause", get_binary(formula, num_clause)
     features += get_binary(formula, num_clause)   # Ratio of binary clause
     # print "28/-28 29-33/ -29-33 Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features", horn_features(formula, num_vars, num_clause)
-    features += horn_features(formula, num_vars, num_clause)[: -4] # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
+    features += horn_features(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
     # print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
     # print "21-25 Occurence of positive and negative literals for each variable", add_stat(get_pos_neg_occ(formula, num_vars))  
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable 
@@ -162,9 +162,9 @@ def horn_features(formula, num_vars, num_clause):
     Formats the outputs of ratio_horn_clauses(), returns processed 10 features related to horn clauses
     """
     ratio_horn, ratio_rev_horn, lst = ratio_horn_clauses(formula, num_vars, num_clause)
-    horn_var_feats = add_stat(lst[0])
-    rev_horn_var_feats = add_stat(lst[1])
-    return [ratio_horn, ratio_rev_horn] + horn_var_feats + rev_horn_var_feats
+    horn_var_feats = add_stat_normalized(lst[0], num_vars)
+   # rev_horn_var_feats = add_stat(lst[1])
+    return [ratio_horn] + horn_var_feats# + rev_horn_var_feats
 
 def ratio_horn_clauses(formula, num_vars, num_clause):
     """
@@ -282,6 +282,16 @@ def add_stat(lst):
     add max, min, mean, std of the give statistics to the features list.
     """
     return [max(lst),min(lst), np.mean(lst), np.std(lst)]
-    
+
+
+def add_stat_normalized(lst, num_vars):
+    """                                                                        
+    Normalized the list with the number of variables; add max, min, mean, std of the give statistics to the features list. 
+    """
+    for i in range(len(lst)):
+        lst[i] = lst[i]/float(num_vars)
+    return [max(lst),min(lst), np.mean(lst), np.std(lst)]
+
+
 if __name__ == "__main__":
     main()
