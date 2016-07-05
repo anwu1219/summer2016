@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.linear_model import RidgeCV, LogisticRegressionCV
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.feature_selection import SelectKBest, chi2
@@ -77,7 +78,8 @@ print np.sum(Y_test), "negative samples out of", len(Y_test), "in test set.", "B
 #poly.fit_transform(X)
 #poly.fit_transform(X_test)
 a = [1e-6, 1e-5, 1e-4, 0.001,0.01, 0.1, 1.0, 10.0,100]
-clf1 = RandomForestClassifier(n_estimators = 99,  n_jobs = -1)
+clf1 = RandomForestClassifier(n_estimators = 50,  n_jobs = -1)
+
 #clf1 = DecisionTreeClassifier()
 #clf1 = KNeighborsClassifier(n_neighbors = 39, n_jobs = -1, weights = 'distance')
 #clf1 = LogisticRegressionCV(Cs = a)
@@ -91,6 +93,14 @@ except AttributeError:
         pass
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
+probs =  clf1.predict_proba(X_test)[:,1]
+X_test_hp = []
+Y_test_hp = []
+for i in range(len(probs)):
+        if probs[i] >= 0.98 or probs[i] <= 0.02:
+                X_test_hp.append(X_test[i])
+                Y_test_hp.append(Y_test[i])
+print "High prob test score:", clf1.score(X_test_hp, Y_test_hp)
 # #predict2 = clf2.score(X_test, Y_test)
 # 	print predict1
 # except ValueError:
@@ -100,6 +110,6 @@ if len(sys.argv) > 3 and sys.argv[3] == '-s':
         single_feature_behavior(X, X_test, Y, Y_test, clf1)
 
 
-search_for_best_features(np.array(X), np.array(X_test), Y, Y_test, clf1)
+#search_for_best_features(np.array(X), np.array(X_test), Y, Y_test, clf1)
 
 
