@@ -7,55 +7,84 @@ import numpy as np
 import scipy as sp
 import math
 from pulp import *
+from sklearn.ensemble import RandomForestClassifier
+import random
+
+#------------------------------------------------------------------------- Main Methods Called from C++ -------------------------------------------------------------#
+
+def choose_lit(current_formula, num_vars, classifier):
+    if current_formula == "Solved":
+        return 0
+    content = current_formula.split("\n")[:-1]; # The last line is empty
+    unassigned = sorted(map(int, content[0][1:].split()))
+    content[1] = content[1].split();
+    for i in range(2, len(content)):
+        content[i] = map(int, content[i].split())
+    return write_SAT_file(content, unassigned, num_vars, classifier)
+
+def train_model():
+    X = []
+    Y = []
+    TRAINSET = "data_ordered_balanced_with_original_train1.txt"
+    with open(TRAINSET, 'r') as in_file:
+        data_set = in_file.readlines()
+        for line in data_set:
+            line =line.split()[3:] # skip the formula identifier, num_var, and num_clause                                                                          
+            line = map(float, line)
+            #               X.append([line[0]])                                                                                                                    
+            X.append([line[0]] + line[12:17] + line[22:-1])
+            Y.append(line[-1])
+    clf1 = RandomForestClassifier(n_estimators = 50,  n_jobs = -1)
+    return clf1.fit(X, Y)
 
 
-def choose_lit(filename, solution, num_vars):
-    content = []
-    with open(filename, 'r') as in_file: # Read a dimacs file
-        for line in in_file:
-            if line[0] == 'c':
-                pass
-            elif len(content) >= 2:
-                content.append(map(int, line.split()))
-            else:
-                content.append('c generated dimacs file\n')
-                content.append(line.split())
-    solution = map(int, solution.split());
-    return len(write_SAT_file(content, solution, num_vars))
 
 
-#------------------------------------------------------Generate formula Helper method--------------------------------------------------------#
+#------------------------------------------------------------ Generate formula Helper method -----------------------------------------------------------------------#
 
 
-def write_SAT_file(in_content, solution, num_vars):
-    all_vars = range(1, num_vars + 1);
-    print solution
-    if len(solution) > 0:
-        new_dimacs, solution, all_vars = update_content(in_content, solution, 0,  all_vars)
-        print "I'm here"
-        new_dimacs, solution, all_vars = unit_propagation(new_dimacs, solution, all_vars)
-        new_dimacs, solution, all_vars = shrink_formula(new_dimacs, solution, all_vars)
+def write_SAT_file(in_content, unassigned, num_vars, classifier):
+    all_vars = range(1, num_vars + 1)
+    if len(unassigned) < num_vars:
+        new_dimacs, all_vars = shrink_formula_with_solution(in_content, all_vars)
     else:
         new_dimacs = in_content
-        all_vars = all_vars
-    graphs = []
-    for var in all_vars:
-        new_dimacs_p, solution_p, all_vars_p = update_content(copy.deepcopy(new_dimacs),[var], 0, copy.deepcopy(all_vars))
-        new_dimacs_p, solution_p, all_vars_p = unit_propagation(new_dimacs_p, solution_p, all_vars_p)
-        new_dimacs_p, solution_p, all_vars_p = shrink_formula(new_dimacs_p, solution_p, all_vars_p)
-        graphs.append(get_features(new_dimacs_p[1:]))
-        new_dimacs_n, solution_n, all_vars_n = update_content(copy.deepcopy(new_dimacs),[-var], 0, copy.deepcopy(all_vars))
-        new_dimacs_n, solution_n, all_vars_n = unit_propagation(new_dimacs_n, solution_n, all_vars_n)
-        new_dimacs_n, solution_n, all_vars_n = shrink_formula(new_dimacs_n, solution_n, all_vars_n)
-        graphs.append(get_features(new_dimacs_n[1:]))
+    assert(len(all_vars) == len(unassigned))
+    graphs = {}
+    for i in range(len(all_vars)):
+        var = int(2 * (0.5 - random.randint(0, 1))) * all_vars[i]
+        new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
+        new_dimacs_p = unit_propagation(new_dimacs_p)
+        new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
+        if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
+            return var / abs(var) * unassigned[i]
+        if contains_empty(new_dimacs_p): # There are empty clauses
+            continue
+        try:
+            features_p = get_features(new_dimacs_p[1:])#[2:]
+        except:
+            print "Feature extraction failed"
+        try:
+            prob = classifier.predict_proba([features_p])[:,1][0]
+        except:
+            print "Prediction failed"            
+        if prob >= 0.9:
+            return var / abs(var) * unassigned[i]
+        elif  prob <= 0.1:
+            return -1 * var / abs(var) * unassigned[i]
+        else:
+            if prob > 0.5:
+                graphs[prob] = var / abs(var) * unassigned[i]
+            else:
+                graphs[1 - prob] = -1 * var / abs(var) * unassigned[i]
+    if len(graphs) > 0:
+        return graphs[max(graphs.keys())]
+    else:
+        return unassigned[0]
 
-    return graphs
 
-
-def update_content(content, solution, index, all_vars):
+def update_content(content, solution, index):
     lit = solution[index]
-    solution.remove(lit)
-    all_vars.remove(abs(lit))
     deleted_clause = 0
     new_dimacs = [content[0],[]]
     for line in content[2:]:
@@ -69,10 +98,8 @@ def update_content(content, solution, index, all_vars):
     info = content[1]
     info[2] = int(info[2]) - 1
     info[3] = int(info[3]) - deleted_clause
-    new_dimacs[1] = info  # update the number of clauses                                                                                        
-    solution = update_sol(solution, abs(lit))
-    all_vars = update_sol(all_vars, abs(lit))
-    return new_dimacs, solution, all_vars
+    new_dimacs[1] = info  # update the number of clauses
+    return new_dimacs
 
 def update_sol(solution, var):
     for i in range(len(solution)):
@@ -83,8 +110,8 @@ def update_sol(solution, var):
 
 
 def update_line(line, var):
-    """                                                                                                                                        
-    decrease the numbers of variables by 1                                                                                                     
+    """                                     
+    decrease the numbers of variables by 1
     """
     for i in range(len(line)):
         if abs(line[i]) > var:
@@ -93,9 +120,9 @@ def update_line(line, var):
     return line
 
 
-def unit_propagation(content, solution, all_vars):
+def unit_propagation(content):
     for i in range(2, len(content)):
-        if len(content[i]) == 2:
+        if len(content[i]) == 1: # no zeros at the end of the line
             lit = content[i][0]
             deleted_clause = 0
             new_dimacs = [content[0],[]]
@@ -108,55 +135,43 @@ def unit_propagation(content, solution, all_vars):
                     deleted_clause += 1
             for j in range(2, len(new_dimacs)):
                 new_dimacs[j] = update_line(new_dimacs[j], abs(lit))
-            if lit in solution:
-                solution.remove(lit)
-            else:
-                pass
-                #print "Can't find", lit                                                                                              
-            if abs(lit) in all_vars:
-                all_vars.remove(abs(lit))
-            else:
-                pass
-                #print "Can't find", lit     
-            solution = update_sol(solution, abs(lit))
-            all_vars = update_sol(all_vars, abs(lit))
             info = content[1]
             info[2] = int(info[2]) - 1
             info[3] = int(info[3]) - deleted_clause
-            new_dimacs[1] = info # update the number of clauses                                                                                 
-            return unit_propagation(new_dimacs, solution, all_vars)
-    return content, solution, all_vars
+            new_dimacs[1] = info # update the number of clauses                                                      
+            return unit_propagation(new_dimacs)
+    return content
 
     
-def shrink_formula(content, solution, all_vars):
-    for ele in range(len(solution)+1)[1:]:
+def shrink_formula(content, num_vars):
+    for ele in range(1, num_vars + 1):
         if (not any(-ele in line for line in content[2:])) and (not any(ele in line for line in content[2:])):
             for i in range(2, len(content)):
                 content[i] = update_line(content[i], abs(ele))
-            try:
-                if ele in solution:
-                    solution.remove(ele)
-                else:
-                    solution.remove(-ele)
-            except ValueError:
-                pass;
-            try:
-                if ele in all_vars:
-                    all_vars.remove(ele)
-                else:
-                    all_vars.remove(-ele)
-            except ValueError:
-                pass;
+            content[1][2] = int(content[1][2]) - 1
+            return shrink_formula(content, content[1][2])
+    return content
+
+
+def shrink_formula_with_solution(content, solution):
+    for ele in range(1, len(solution)+1):
+        if (not any(-ele in line for line in content[2:])) and (not any(ele in line for line in content[2:])):
+            for i in range(2, len(content)):
+                content[i] = update_line(content[i], abs(ele))
+            assert((ele in solution) or (-ele in solution))
+            if ele in solution:
+                solution.remove(ele)
+            else:
+                solution.remove(-ele)
             solution = update_sol(solution, abs(ele))
-            all_vars = update_sol(all_vars, abs(ele))
-            content[1][2] -= 1
-            return shrink_formula(content, solution, all_vars)
-    return content, solution, all_vars
+            content[1][2] = int(content[1][2]) - 1
+            return shrink_formula_with_solution(content, solution)
+    return content, solution
 
 
 def contains_empty(content):
     for ele in content[2:]:
-        if len(ele) == 1:
+        if len(ele) == 0:
             return True
     return False
 
@@ -178,30 +193,14 @@ def get_features(content):
     VCG = nx.Graph()
     VCG.add_nodes_from(range(num_vars + num_clause + 1)[1:])
     preprocess_VIG(formula, VIG) # Build a VIG                                                                                                  
-    preprocess_VCG(formula, VCG, num_vars) # Build a VCG                                                                                        
+    preprocess_VCG(formula, VCG, num_vars) # Build a VCG                                                                                   
     features = []
-    features.append(num_vars)
-    # print "1 num_vars", num_vars                                                                                                              
-    features.append(num_clause)
-    # print "2 num_clause", num_clause                                                                                                          
-    # print "3 Clause variable ratio",float(num_clause) / num_vars                                                                              
-    features.append(float(num_clause) / num_vars) # Clause variable ratio                                                                       
-    # print "14-17 VIG degree features",add_stat(VIG.degree().values())[:-1]                                                                    
-    features += add_stat_normalized(VIG.degree().values(), num_vars) # VIG degree features                                                      
-    # print "4-8 VCG var degree features", add_stat(VCG.degree().values()[:num_vars])                                                           
-    features += add_stat_normalized(VCG.degree().values()[:num_vars], num_vars)  # VCG var degree features                                      
-    # print "9-13 VCG clause degree features", add_stat(VCG.degree().values()[num_vars:])                                                       
-    features += add_stat_normalized(VCG.degree().values()[num_vars:], num_vars)  # VCG clause degree features                                   
-    # print "18-20 Occurence of positive and negative literals in each clause", add_stat(get_pos_neg_ratio(formula))[2:]                        
-    features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause                        
-    # print "26-27 Ratio of binary clause", get_binary(formula, num_clause)                                                                     
-    features += get_binary(formula, num_clause)   # Ratio of binary clause                                                                      
-    # print "28/-28 29-33/ -29-33 Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features", horn_features(formula, num_v\ars, num_clause)
-    features += horn_features(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features   
-    # print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)                                                            
-    # print "21-25 Occurence of positive and negative literals for each variable", add_stat(get_pos_neg_occ(formula, num_vars))                 
-    features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable                            
-    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG                                                         
+    features.append(float(num_clause) / num_vars) # Clause variable ratio                                                                   
+    features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause
+    features += get_binary(formula, num_clause)   # Ratio of binary clause              
+    features.append(ratio_horn_clauses(formula, num_vars, num_clause));
+    features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable                      
+    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
     return features
 
@@ -211,7 +210,6 @@ def preprocess_VIG(formula, VIG):
     Builds VIG.                                                                                                                                                       
     """
     for cn in range(len(formula)):
-        formula[cn] = formula[cn][:-1]
         for i in range(len(formula[cn])-1):
             for j in range(len(formula[cn]))[i+1:]:
                 VIG.add_edge(abs(formula[cn][i]), abs(formula[cn][j]))
@@ -229,8 +227,8 @@ def preprocess_VCG(formula, VCG, num_vars):
 
 
 def get_pos_neg_ratio(formula):
-    """                                                                                                                                                                
-    get the ratio of positive occurrences of each literal at each line                                                                                                 
+    """                                                                                                                                     
+    get the ratio of positive occurrences of each literal at each line                                                   
     """
     lst = []
     for line in formula:
@@ -241,13 +239,13 @@ def get_pos_neg_ratio(formula):
                     pos += 1
             lst.append(float(pos) / len(line))
         else:
-            print "Line is empty", sys[1]
+            pass
     return lst
 
 
 def get_pos_neg_occ(formula, num_vars):
-    """                                                                                                                                                                
-    get the ratio of positive and negative occurrences of each variable                                                                                                
+    """                                                                                                                        
+    get the ratio of positive and negative occurrences of each variable               
     """
     dic = {}
     lst = []
@@ -263,11 +261,8 @@ def get_pos_neg_occ(formula, num_vars):
             lst.append(float(dic[i][1]) / dic[i][0])
     POSNEG_ratio_var_mean = 0
     for i in range(num_vars + 1)[1:]:
-        if dic[i][0] != 0:
-            POSNEG_ratio_var_mean += abs((0.5 - dic[i][1]) / dic[i][0])
-        else:
-            print "Can't find variable", i, sys.argv[1]
-            num_vars -= 1
+        assert(dic[i][0] != 0)
+        POSNEG_ratio_var_mean += abs((0.5 - dic[i][1]) / dic[i][0])
     return add_stat(lst) + [POSNEG_ratio_var_mean * 2 / num_vars]
 
 def get_binary(formula, num_clause):
@@ -288,8 +283,8 @@ def get_binary(formula, num_clause):
 
 
 def horn_features(formula, num_vars, num_clause):
-    """                                                                                                                                                                
-    Formats the outputs of ratio_horn_clauses(), returns processed 10 features related to horn clauses                                                                 
+    """
+    Formats the outputs of ratio_horn_clauses(), returns processed 10 features related to horn clauses                               
     """
     ratio_horn, ratio_rev_horn, lst = ratio_horn_clauses(formula, num_vars, num_clause)
     horn_var_feats = add_stat_normalized(lst[0], num_vars)
@@ -297,36 +292,23 @@ def horn_features(formula, num_vars, num_clause):
     return [ratio_horn] + horn_var_feats# + rev_horn_var_feats
 
 def ratio_horn_clauses(formula, num_vars, num_clause):
-    """                                                                                                                                                                
-    Get the ratiotion of horn clauses, reverse horn clauses in the formula,                                                                                            
-        print "I'm here"    as well as the occurence of each variable in horn clauses and reverse horn clauses                                                                                 
+    """                                                                                                                                                      
+    Get the ratiotion of horn clauses, reverse horn clauses in the formula, as well as the occurence of each variable in horn clauses and reverse horn clauses                                                                                 
     """
     num_horn = 0
     num_rev_horn = 0
-    dic = {}
-    lst = [[],[]]
-    # the first row is the occrence of each variable in horn clauses, the second in reverse horn clauses                                                               
-    for i in range(num_vars + 1)[1:]:
-        dic[i] = [0, 0]
     for line in formula:
         num_pos, num_neg = pos_neg_lits(line)
         if num_pos <= 1:
             num_horn += 1
-            for ele in line:
-                dic[abs(ele)][0] += 1
         if num_neg <= 1:
             num_rev_horn += 1
-            for ele in line:
-                dic[abs(ele)][1] += 1
-    for i in range(num_vars + 1)[1:]:
-        lst[0].append(dic[i][0])
-        lst[1].append(dic[i][1])
-    return 1.0 * num_horn / num_clause, 1.0 * num_rev_horn / num_clause, lst
+    return 1.0 * num_horn / num_clause#, 1.0 * num_rev_horn / num_clause, lst
 
 def pos_neg_lits(clause):
-    # This is a helper function for ratio_horn_clauses();                                                                                                              
-    # returns the number of positive literals in a clause                                                                                                              
-    # in the case of 3^(-)-cnf, which is our case, if a clause is not a horn clause,                                                                                   
+    # This is a helper function for ratio_horn_clauses();                                                                              
+    # returns the number of positive literals in a clause                                                                     
+    # in the case of 3^(-)-cnf, which is our case, if a clause is not a horn clause,
     # then it is a reverse horn clause                                                                                                                                 
     new_clause = np.array(clause)
     return (new_clause > 0).sum(), (new_clause < 0).sum()
@@ -386,14 +368,11 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
         exp = exp + v[i] * LPVar[i]
     prob += exp
     prob.solve()
-    # solve the problem                                                                                                                                                
-    #print LpStatus[status]                                                                                                                                            
+    # solve the problem 
     lst = []
     for i in range(1, len(LPVar)):
         lst.append(LPVar[i].varValue)
 
-#    if math.isnan(v_star):                                                                                                                                            
-#        return 0                                                                                                                                                      
     for i in range(len(lst)):
         try:
             lst[i] = min(float(lst[i]), 1 - float(lst[i]))
