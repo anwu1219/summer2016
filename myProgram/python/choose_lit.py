@@ -25,6 +25,8 @@ def choose_lit(current_formula, num_vars, classifier):
         print "Error in string parsing"
         return 99999999
     return write_SAT_file(content, unassigned, num_vars, classifier)
+
+
 def train_model():
     X = []
     Y = []
@@ -48,91 +50,85 @@ def train_model():
 
 
 def write_SAT_file(in_content, unassigned, num_vars, classifier):
-    checked = [["Reach write SAT", False, ''], ["update_content",False, ""], ["Shrink Formula",False, ''],["First Unit Prop", False, ''],["Second Shrink", False, ''],["Feature", False, '']]
-    try:
-        checked[0][1] = True
-        all_vars = range(1, num_vars + 1)
-        if len(unassigned) < num_vars:
+#    checked = [["Reach write SAT", False, ''], ["update_content",False, ""], ["Shrink Formula",False, ''],["First Unit Prop", False, ''],["Second Shrink", False, ''],["Feature", False, '']]
+    all_vars = range(1, num_vars + 1)
+    if len(unassigned) < num_vars:
+        try:
             new_dimacs = unit_propagation(in_content)
             new_dimacs, all_vars = shrink_formula_with_solution(new_dimacs, all_vars)
-            checked[1][1] = True
+        except:
+            print "Fail to shrink input formulae"
+            print in_content
+    else:
+        new_dimacs = in_content
+    assert(len(all_vars) == len(unassigned))
+    q = PriorityQueue()
+    for i in range(len(all_vars)):  # Positive literal run
+        var =  all_vars[i]
+        new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
+        new_dimacs_p = unit_propagation(new_dimacs_p)
+        new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
+        if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
+            return var / abs(var) * unassigned[i]
+        if contains_empty(new_dimacs_p): # There are empty clauses
+            continue
+        try:
+            features_p = get_features(new_dimacs_p[1:])#[2:]
+            prob = classifier.predict_proba([features_p])[:,1][0]
+        except:
+            print "Prediction failed"            
+        if prob >= 0.95:
+            return unassigned[i]
+        elif  prob <= 0.05:
+            return -1 * unassigned[i]
         else:
-            new_dimacs = in_content
-        assert(len(all_vars) == len(unassigned))
-        graphs = {}
-        q = PriorityQueue()
-        for i in range(len(all_vars)):  # Positive literal run
-            var =  all_vars[i]
-            checked[2][2] = copy.deepcopy(new_dimacs)
-            new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
-            checked[2][1] = True 
-            checked[3][2] = copy.deepcopy(new_dimacs_p)
-            new_dimacs_p = unit_propagation(new_dimacs_p)
-            checked[3][1] = True
-            new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
-            checked[4][1] = True
-            if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
-                return var / abs(var) * unassigned[i]
-            if contains_empty(new_dimacs_p): # There are empty clauses
-                continue
-            try:
-                features_p = get_features(new_dimacs_p[1:])#[2:]
-                checked[4][1] = True
-                prob = classifier.predict_proba([features_p])[:,1][0]
-            except:
-                print "Prediction failed"            
-            if prob >= 0.9:
-                return unassigned[i]
-            elif  prob <= 0.1:
-                return -1 * unassigned[i]
+            if q.qsize() <= 3:
+                q.put((prob, unassigned[i]))
             else:
-                #if prob > 0.5:
-                graphs[prob] = unassigned[i]
-                #else:
-                #graphs[1 - prob] = -1 * unassigned[i]
-            checked[2][1] = False
-            checked[3][1] = False
-            checked[4][1] = False
-        for i in range(len(all_vars)): # Negative literal run
-            var =  -all_vars[i]
-            checked[2][2] = copy.deepcopy(new_dimacs)
+                temp = q.get()
+                if temp[0] < prob:
+                    q.put((prob, unassigned[i]))
+                else:
+                    q.put(temp)
+    for i in range(len(all_vars)): # Negative literal run
+        var =  -all_vars[i]
+        try:
             new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
-            checked[2][1] = True
-            checked[3][2] = copy.deepcopy(new_dimacs_p)
             new_dimacs_p = unit_propagation(new_dimacs_p)
-            checked[3][1] = True
             new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
-            checked[4][1] = True
-            if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
-                return var / abs(var) * unassigned[i]
-            if contains_empty(new_dimacs_p): # There are empty clauses                              
-                continue
-            try:
-                features_p = get_features(new_dimacs_p[1:])#[2:]                                    
-                prob = classifier.predict_proba([features_p])[:,1][0]
-            except:
-                print "Prediction failed"
-            if prob >= 0.95:
-                return -1 * unassigned[i]
-            elif  prob <= 0.05:
-                return unassigned[i]
-            else:
-                   # if prob > 0.5:
-                graphs[prob] = -1 * unassigned[i]
-            checked[2][1] = False
-            checked[3][1] = False
-            checked[4][1] = False
-                #else:
-                 #   graphs[1 - prob] = unassigned[i]
-        if len(graphs) > 0:
-            return graphs[max(graphs.keys())]
+        except:
+            print "all vars:", all_vars
+            print "current var:", all_vars[i]
+            print "content:", new_dimacs
+        if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
+            return var / abs(var) * unassigned[i]
+        if contains_empty(new_dimacs_p): # There are empty clauses                              
+            continue
+        try:
+            features_p = get_features(new_dimacs_p[1:])#[2:]                                    
+            prob = classifier.predict_proba([features_p])[:,1][0]
+        except:
+            print "Prediction failed"
+        if prob >= 0.95:
+            return -1 * unassigned[i]
+        elif  prob <= 0.05:
+            return unassigned[i]
         else:
-            return unassigned[0]
-    except:
-        for ele in checked:
-            if not ele[1]:
-                print ele
-                break
+            if q.qsize() <= 3:
+                q.put((prob, -1 * unassigned[i]))
+            else:
+                temp = q.get()
+                if temp[0] < prob:
+                    q.put((prob, -1 * unassigned[i]))
+                else:
+                    q.put(temp)
+    lst = []
+    while not q.empty():
+        lst.append(q.get()[1])
+    if len(lst) > 0:
+        return lst[random.randint(0, len(lst)-1)]
+    return unassigned[0]
+
 
 def update_content(content, solution, index):
     lit = solution[index]
