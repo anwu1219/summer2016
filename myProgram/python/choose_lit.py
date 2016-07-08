@@ -62,7 +62,7 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
         graphs = {}
         for i in range(len(all_vars)):  # Positive literal run
             var =  all_vars[i]
-            checked[3][2] = copy.deepcopy(new_dimacs)
+            checked[2][2] = copy.deepcopy(new_dimacs)
             new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
             checked[2][1] = True 
             checked[3][2] = copy.deepcopy(new_dimacs_p)
@@ -89,12 +89,19 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
                 graphs[prob] = unassigned[i]
                 #else:
                 #graphs[1 - prob] = -1 * unassigned[i]
+            checked[2][1] = False
+            checked[3][1] = False
+            checked[4][1] = False
         for i in range(len(all_vars)): # Negative literal run
             var =  -all_vars[i]
-               # if var not in graphs:
+            checked[2][2] = copy.deepcopy(new_dimacs)
             new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
+            checked[2][1] = True
+            checked[3][2] = copy.deepcopy(new_dimacs_p)
             new_dimacs_p = unit_propagation(new_dimacs_p)
+            checked[3][1] = True
             new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
+            checked[4][1] = True
             if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
                 return var / abs(var) * unassigned[i]
             if contains_empty(new_dimacs_p): # There are empty clauses                              
@@ -111,6 +118,9 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
             else:
                    # if prob > 0.5:
                 graphs[prob] = -1 * unassigned[i]
+            checked[2][1] = False
+            checked[3][1] = False
+            checked[4][1] = False
                 #else:
                  #   graphs[1 - prob] = unassigned[i]
         if len(graphs) > 0:
