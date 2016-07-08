@@ -50,7 +50,6 @@ def train_model():
 
 
 def write_SAT_file(in_content, unassigned, num_vars, classifier):
-#    checked = [["Reach write SAT", False, ''], ["update_content",False, ""], ["Shrink Formula",False, ''],["First Unit Prop", False, ''],["Second Shrink", False, ''],["Feature", False, '']]
     all_vars = range(1, num_vars + 1)
     if len(unassigned) < num_vars:
         try:
@@ -61,13 +60,18 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
             print in_content
     else:
         new_dimacs = in_content
-    assert(len(all_vars) == len(unassigned))
+#    assert(len(all_vars) == len(unassigned)) can't assert this
     q = PriorityQueue()
     for i in range(len(all_vars)):  # Positive literal run
         var =  all_vars[i]
-        new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
-        new_dimacs_p = unit_propagation(new_dimacs_p)
-        new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
+        try:
+            new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
+            new_dimacs_p = unit_propagation(new_dimacs_p)
+            new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
+        except:
+            print "all vars:", all_vars
+            print "current var:", all_vars[i]
+            print "content:", new_dimacs
         if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
             return var / abs(var) * unassigned[i]
         if contains_empty(new_dimacs_p): # There are empty clauses
