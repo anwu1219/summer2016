@@ -15,6 +15,12 @@ def main():
                         out.close()
                 else:   
                         print "This formula is already solved."
+        if action == '-ml': # Solve a formula if it is not solved
+                in_name = sys.argv[2]
+                out_name = in_name.split('.')[0]+'.sol'
+                out = open(in_name.split('.')[0]+'.log','w')
+                subprocess.call(["/home/anwu/minisatML/core/minisat", in_name, out_name], stdout=out)
+                out.close()
         elif action == '-m': # Give another solution of a solved SAT formula 
                 times = int(sys.argv[2])
                 in_name = sys.argv[3]

@@ -13,15 +13,18 @@ import random
 #------------------------------------------------------------------------- Main Methods Called from C++ -------------------------------------------------------------#
 
 def choose_lit(current_formula, num_vars, classifier):
-    if current_formula == "Solved":
-        return 0
-    content = current_formula.split("\n")[:-1]; # The last line is empty
-    unassigned = sorted(map(int, content[0][1:].split()))
-    content[1] = content[1].split();
-    for i in range(2, len(content)):
-        content[i] = map(int, content[i].split())
+    try:
+        if current_formula == "Solved":
+            return 0
+        content = current_formula.split("\n")[:-1]; # The last line is empty
+        unassigned = sorted(map(int, content[0][1:].split()))
+        content[1] = content[1].split();
+        for i in range(2, len(content)):
+            content[i] = map(int, content[i].split())
+    except:
+        print "Error in string parsing"
+        return 99999999
     return write_SAT_file(content, unassigned, num_vars, classifier)
-
 def train_model():
     X = []
     Y = []
@@ -31,7 +34,8 @@ def train_model():
         for line in data_set:
             line =line.split()[3:] # skip the formula identifier, num_var, and num_clause                                                                          
             line = map(float, line)
-            #               X.append([line[0]])                                                                                                                    
+#            X.append(line[12:17] + line[22:-1])       
+
             X.append([line[0]] + line[12:17] + line[22:-1])
             Y.append(line[-1])
     clf1 = RandomForestClassifier(n_estimators = 50,  n_jobs = -1)
@@ -44,44 +48,79 @@ def train_model():
 
 
 def write_SAT_file(in_content, unassigned, num_vars, classifier):
-    all_vars = range(1, num_vars + 1)
-    if len(unassigned) < num_vars:
-        new_dimacs, all_vars = shrink_formula_with_solution(in_content, all_vars)
-    else:
-        new_dimacs = in_content
-    assert(len(all_vars) == len(unassigned))
-    graphs = {}
-    for i in range(len(all_vars)):
-        var = int(2 * (0.5 - random.randint(0, 1))) * all_vars[i]
-        new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
-        new_dimacs_p = unit_propagation(new_dimacs_p)
-        new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
-        if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
-            return var / abs(var) * unassigned[i]
-        if contains_empty(new_dimacs_p): # There are empty clauses
-            continue
-        try:
-            features_p = get_features(new_dimacs_p[1:])#[2:]
-        except:
-            print "Feature extraction failed"
-        try:
-            prob = classifier.predict_proba([features_p])[:,1][0]
-        except:
-            print "Prediction failed"            
-        if prob >= 0.9:
-            return var / abs(var) * unassigned[i]
-        elif  prob <= 0.1:
-            return -1 * var / abs(var) * unassigned[i]
+    checked = [["Reach write SAT", False, ''], ["update_content",False, ""], ["Shrink Formula",False, ''],["First Unit Prop", False, ''],["Second Shrink", False, ''],["Feature", False, '']]
+    try:
+        checked[0][1] = True
+        all_vars = range(1, num_vars + 1)
+        if len(unassigned) < num_vars:
+            new_dimacs = unit_propagation(in_content)
+            new_dimacs, all_vars = shrink_formula_with_solution(new_dimacs, all_vars)
+            checked[1][1] = True
         else:
-            if prob > 0.5:
-                graphs[prob] = var / abs(var) * unassigned[i]
+            new_dimacs = in_content
+        assert(len(all_vars) == len(unassigned))
+        graphs = {}
+        for i in range(len(all_vars)):  # Positive literal run
+            var =  all_vars[i]
+            new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
+            checked[2][1] = True 
+            checked[3][2] = new_dimacs_p
+            new_dimacs_p = unit_propagation(new_dimacs_p)
+            checked[3][1] = True
+            new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
+            checked[4][1] = True
+            if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
+                return var / abs(var) * unassigned[i]
+            if contains_empty(new_dimacs_p): # There are empty clauses
+                continue
+            try:
+                features_p = get_features(new_dimacs_p[1:])#[2:]
+                checked[4][1] = True
+                prob = classifier.predict_proba([features_p])[:,1][0]
+            except:
+                print "Prediction failed"            
+            if prob >= 0.9:
+                return unassigned[i]
+            elif  prob <= 0.1:
+                return -1 * unassigned[i]
             else:
-                graphs[1 - prob] = -1 * var / abs(var) * unassigned[i]
-    if len(graphs) > 0:
-        return graphs[max(graphs.keys())]
-    else:
-        return unassigned[0]
-
+                #if prob > 0.5:
+                graphs[prob] = unassigned[i]
+                #else:
+                #graphs[1 - prob] = -1 * unassigned[i]
+        for i in range(len(all_vars)): # Negative literal run
+            var =  -all_vars[i]
+               # if var not in graphs:
+            new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
+            new_dimacs_p = unit_propagation(new_dimacs_p)
+            new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
+            if int(new_dimacs_p[1][3]) == 0: # all clauses are satisfied given the current branching variable
+                return var / abs(var) * unassigned[i]
+            if contains_empty(new_dimacs_p): # There are empty clauses                              
+                continue
+            try:
+                features_p = get_features(new_dimacs_p[1:])#[2:]                                    
+                prob = classifier.predict_proba([features_p])[:,1][0]
+            except:
+                print "Prediction failed"
+            if prob >= 0.9:
+                return -1 * unassigned[i]
+            elif  prob <= 0.1:
+                return unassigned[i]
+            else:
+                   # if prob > 0.5:
+                graphs[prob] = -1 * unassigned[i]
+                #else:
+                 #   graphs[1 - prob] = unassigned[i]
+        if len(graphs) > 0:
+            return graphs[max(graphs.keys())]
+        else:
+            return unassigned[0]
+    except:
+        for ele in checked:
+            if not ele[1]:
+                print ele
+                break
 
 def update_content(content, solution, index):
     lit = solution[index]
