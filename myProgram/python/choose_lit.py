@@ -9,7 +9,7 @@ import math
 from pulp import *
 from sklearn.ensemble import RandomForestClassifier
 import random
-
+from Queue import PriorityQueue
 #------------------------------------------------------------------------- Main Methods Called from C++ -------------------------------------------------------------#
 
 def choose_lit(current_formula, num_vars, classifier):
@@ -60,6 +60,7 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
             new_dimacs = in_content
         assert(len(all_vars) == len(unassigned))
         graphs = {}
+        q = PriorityQueue()
         for i in range(len(all_vars)):  # Positive literal run
             var =  all_vars[i]
             checked[3][2] = copy.deepcopy(new_dimacs)
@@ -104,9 +105,9 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
                 prob = classifier.predict_proba([features_p])[:,1][0]
             except:
                 print "Prediction failed"
-            if prob >= 0.9:
+            if prob >= 0.95:
                 return -1 * unassigned[i]
-            elif  prob <= 0.1:
+            elif  prob <= 0.05:
                 return unassigned[i]
             else:
                    # if prob > 0.5:
