@@ -62,9 +62,10 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
         graphs = {}
         for i in range(len(all_vars)):  # Positive literal run
             var =  all_vars[i]
+            checked[3][2] = copy.deepcopy(new_dimacs)
             new_dimacs_p = update_content(copy.deepcopy(new_dimacs),[var], 0)
             checked[2][1] = True 
-            checked[3][2] = new_dimacs_p
+            checked[3][2] = copy.deepcopy(new_dimacs_p)
             new_dimacs_p = unit_propagation(new_dimacs_p)
             checked[3][1] = True
             new_dimacs_p = shrink_formula(new_dimacs_p, new_dimacs_p[1][2])
