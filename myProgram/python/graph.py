@@ -7,6 +7,7 @@ import numpy as np
 import scipy as sp
 import math
 from pulp import *
+from sets import Set
 #import csv
 #import matplotlib.pyplot as plt
 
@@ -45,27 +46,28 @@ def main():
     features = []
     features.append(num_vars) 
     # print "1 num_vars", num_vars
-    features.append(num_clause)
+#    features.append(num_clause)
     # print "2 num_clause", num_clause
     # print "3 Clause variable ratio",float(num_clause) / num_vars
     features.append(float(num_clause) / num_vars) # Clause variable ratio
     # print "14-17 VIG degree features",add_stat(VIG.degree().values())[:-1]
-    features += add_stat_normalized(VIG.degree().values(), num_vars) # VIG degree features
+#    features += add_stat_normalized(VIG.degree().values(), num_vars) # VIG degree features
     # print "4-8 VCG var degree features", add_stat(VCG.degree().values()[:num_vars])
-    features += add_stat_normalized(VCG.degree().values()[:num_vars], num_vars)  # VCG var degree features
+#    features += add_stat_normalized(VCG.degree().values()[:num_vars], num_vars)  # VCG var degree features
     # print "9-13 VCG clause degree features", add_stat(VCG.degree().values()[num_vars:])
-    features += add_stat_normalized(VCG.degree().values()[num_vars:], num_vars)  # VCG clause degree features
+#    features += add_stat_normalized(VCG.degree().values()[num_vars:], num_vars)  # VCG clause degree features
     # print "18-20 Occurence of positive and negative literals in each clause", add_stat(get_pos_neg_ratio(formula))[2:]
     features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause
     # print "26-27 Ratio of binary clause", get_binary(formula, num_clause)
     features += get_binary(formula, num_clause)   # Ratio of binary clause
     # print "28/-28 29-33/ -29-33 Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features", horn_features(formula, num_vars, num_clause)
-    features += horn_features(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
+    features += ratio_horn_clauses(formula, num_vars, num_clause) # Ratio_horn, ratio_rev_horn, horn variable features, rev_horn variable features
     # print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
     # print "21-25 Occurence of positive and negative literals for each variable", add_stat(get_pos_neg_occ(formula, num_vars))  
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable 
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
+    features += get_sat_prob(formula, num_vars)
     features += [SAT]
     with open(sys.argv[3], 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
@@ -168,30 +170,19 @@ def horn_features(formula, num_vars, num_clause):
 
 def ratio_horn_clauses(formula, num_vars, num_clause):
     """
-    Get the ratiotion of horn clauses, reverse horn clauses in the formula, 
-    as well as the occurence of each variable in horn clauses and reverse horn clauses
+    Get the ratiotion of horn clauses, reverse horn clauses in the formula, as well as the occurence of each variable in horn clauses and reverse horn clauses                
     """
     num_horn = 0
     num_rev_horn = 0
-    dic = {}
-    lst = [[],[]]   
-    # the first row is the occrence of each variable in horn clauses, the second in reverse horn clauses
-    for i in range(num_vars + 1)[1:]:
-        dic[i] = [0, 0]
     for line in formula:
         num_pos, num_neg = pos_neg_lits(line)
         if num_pos <= 1:
             num_horn += 1
-            for ele in line:
-                dic[abs(ele)][0] += 1
         if num_neg <= 1:
             num_rev_horn += 1
-            for ele in line:
-                dic[abs(ele)][1] += 1
-    for i in range(num_vars + 1)[1:]:
-        lst[0].append(dic[i][0])
-        lst[1].append(dic[i][1])
-    return 1.0 * num_horn / num_clause, 1.0 * num_rev_horn / num_clause, lst
+    return [1.0 * num_horn / num_clause, 1.0 * num_rev_horn / num_clause]#, lst                                                               
+
+
 
 def pos_neg_lits(clause):
     # This is a helper function for ratio_horn_clauses(); 
@@ -273,6 +264,71 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
     return [np.std(lst) / np.mean(lst), np.mean(lst)]
 
 
+#--------------------------------------------- Get sat prob feature ------------------------------------------#
+
+
+def get_sat_prob(formula, num_vars):
+    bi_clause_occ_dic = {}
+    ter_clause_occ_dic = {}
+    var_occ_bi = {}
+    var_occ_ter = {}
+    for i in range(1, num_vars + 1):
+        var_occ_bi[i] = Set()
+        var_occ_ter[i] = Set()
+    for clause in formula:
+        c = get_c_string(clause)
+        if len(clause) == 2:
+            if c in bi_clause_occ_dic:
+                bi_clause_occ_dic[c] += 1
+            else:
+                bi_clause_occ_dic[c] = 1
+            for var in clause:
+                var_occ_bi[abs(var)].add(c)
+        elif len(clause) == 3:
+            if c in ter_clause_occ_dic:
+                ter_clause_occ_dic[c] += 1
+            else:
+                 ter_clause_occ_dic[c] = 1
+            for var in clause:
+                var_occ_ter[abs(var)].add(c)
+    to_return = []
+    if len(bi_clause_occ_dic) != 0:        
+        lst = []
+        for key in bi_clause_occ_dic:
+            lst.append(bi_clause_occ_dic[key])
+        to_return += add_stat(lst)
+        lst = []
+        for key in var_occ_bi:
+            lst.append(len(var_occ_bi[key])/float(len(bi_clause_occ_dic)))
+        to_return += add_stat(lst)
+    else:
+        lst = [0]
+        to_return += add_stat(lst)
+        to_return += add_stat(lst)
+    if len(ter_clause_occ_dic) != 0:
+        lst = []
+        for key in ter_clause_occ_dic:
+            lst.append(ter_clause_occ_dic[key])
+        to_return += add_stat(lst)
+        lst = []
+        for key in var_occ_ter:
+            lst.append(len(var_occ_ter[key])/float(len(ter_clause_occ_dic)))
+        to_return += add_stat(lst)
+    else:
+        lst = [0]
+        to_return += add_stat(lst)
+        to_return += add_stat(lst)
+    return to_return
+
+
+def get_c_string(clause):
+    s = ""
+    for i in range(len(clause)):
+        clause[i] = abs(clause[i])
+    clause.sort()
+    for ele in clause:
+        s += str(ele) + "-"
+    return s[:-1]
 
 
 #-----------------------------------------------statistics-------------------------------------------------#
