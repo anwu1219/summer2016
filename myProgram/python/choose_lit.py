@@ -81,19 +81,19 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
             prob = classifier.predict_proba([features_p])[:,1][0]
         except:
             print "Prediction failed"            
-        if prob >= 0.95:
-            return unassigned[i]
-        elif  prob <= 0.05:
-            return -1 * unassigned[i]
+#        if prob >= 0.95:
+#            return unassigned[i]
+#        elif  prob <= 0.05:
+#            return -1 * unassigned[i]
+#        else:
+        if q.qsize() <= 3:
+            q.put((prob, unassigned[i]))
         else:
-            if q.qsize() <= 3:
+            temp = q.get()
+            if temp[0] < prob:
                 q.put((prob, unassigned[i]))
             else:
-                temp = q.get()
-                if temp[0] < prob:
-                    q.put((prob, unassigned[i]))
-                else:
-                    q.put(temp)
+                q.put(temp)
     for i in range(len(all_vars)): # Negative literal run
         var =  -all_vars[i]
         try:
@@ -113,19 +113,19 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
             prob = classifier.predict_proba([features_p])[:,1][0]
         except:
             print "Prediction failed"
-        if prob >= 0.95:
-            return -1 * unassigned[i]
-        elif  prob <= 0.05:
-            return unassigned[i]
+#        if prob >= 0.95:
+#            return -1 * unassigned[i]
+#        elif  prob <= 0.05:
+#            return unassigned[i]
+#        else:
+        if q.qsize() <= 3:
+            q.put((prob, -1 * unassigned[i]))
         else:
-            if q.qsize() <= 3:
+            temp = q.get()
+            if temp[0] < prob:
                 q.put((prob, -1 * unassigned[i]))
             else:
-                temp = q.get()
-                if temp[0] < prob:
-                    q.put((prob, -1 * unassigned[i]))
-                else:
-                    q.put(temp)
+                q.put(temp)
     lst = []
     while not q.empty():
         lst.append(q.get()[1])
