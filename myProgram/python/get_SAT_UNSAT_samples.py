@@ -26,7 +26,7 @@ def main():
         pass
     else:
         solution = map(int, contentS[1].split())
-#        write_UNSAT(original_cnf, copy.deepcopy(content))
+        write_UNSAT(original_cnf, copy.deepcopy(content))
         write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1], len(solution))
         
 
@@ -84,7 +84,7 @@ def write_SAT(original_cnf, content, solution):
 
 
 def write_SAT_file(original_cnf, in_content, solution, original_len):
-    if len(solution) < original_len * 0.6:
+    if len(solution) == 0:
         return
     new_dimacs, solution = update_content(in_content, solution, 0)
     new_dimacs, solution = unit_propagation(new_dimacs, solution)

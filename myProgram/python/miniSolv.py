@@ -24,7 +24,7 @@ def main():
         elif action == '-m': # Give another solution of a solved SAT formula 
                 times = int(sys.argv[2])
                 in_name = sys.argv[3]
-                out_name = in_name.split('.')[0]+'.sol'
+                out_name = in_name.split('.')[0]+'.osol'
                 if not os.path.isfile(out_name) or is_sat(out_name):
                         i = 1
                         add_line(in_name, out_name)
