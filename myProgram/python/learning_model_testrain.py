@@ -15,7 +15,6 @@ def search_for_best_features(X, X_test, Y, Y_test, clf):
 	new_X = X[:, 0:1]
 	new_X_test = X_test[:, 0:1]
         lst = []
-	#print new_X
 	clf.fit(new_X, Y)
 	last_score = clf.score(new_X_test, Y_test)
 	for i in range(len(X[0])):
@@ -97,7 +96,7 @@ probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []
 for i in range(len(probs)):
-        if probs[i] >= 0.98 or probs[i] <= 0.02:
+        if probs[i] >= 0.9 or probs[i] <= 0.1:
                 X_test_hp.append(X_test[i])
                 Y_test_hp.append(Y_test[i])
 print "High prob test score:", clf1.score(X_test_hp, Y_test_hp)

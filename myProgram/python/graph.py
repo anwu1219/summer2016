@@ -77,7 +77,7 @@ def main():
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable 
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
-#    features += get_sat_prob(formula, num_vars)
+    features += get_sat_prob(formula, num_vars)
     features += [SAT]
     with open(out_name, 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
