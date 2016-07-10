@@ -18,8 +18,7 @@ This file takes in a dimacs file, calculates the features of it and stores them 
 .txt file.
 """
 def main():
-#    try:
-#        source = argv1
+#    source = argv1
 #    except:
     source = sys.argv[1]
 #    try: 
@@ -27,7 +26,7 @@ def main():
 #    except:
     SAT = sys.argv[2]
 #    try:
-#        out_name = argv3
+#    out_name = argv3
 #    except:
     out_name = sys.argv[3]
     cnf = open(source)
