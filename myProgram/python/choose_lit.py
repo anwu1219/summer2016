@@ -30,15 +30,13 @@ def choose_lit(current_formula, num_vars, classifier):
 def train_model():
     X = []
     Y = []
-    TRAINSET = "data_ordered_balanced_with_original_train1.txt"
+    TRAINSET = "data_prob_feat_balanced_with_original_test1.txt"
     with open(TRAINSET, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
-            line =line.split()[3:] # skip the formula identifier, num_var, and num_clause                                                                          
+            line =line.split()[2:] # skip the formula identifier, num_var, and num_clause                                                                          
             line = map(float, line)
-#            X.append(line[12:17] + line[22:-1])       
-
-            X.append([line[0]] + line[12:17] + line[22:-1])
+            X.append(line[:-1])
             Y.append(line[-1])
     clf1 = RandomForestClassifier(n_estimators = 50,  n_jobs = -1)
     return clf1.fit(X, Y)
@@ -253,6 +251,7 @@ def get_features(content):
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable                      
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
+    features += get_sat_prob(formula, num_vars)
     return features
 
 def preprocess_VIG(formula, VIG):
@@ -433,6 +432,72 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
     if np.mean(lst) == 0:
         return [0, 0]
     return [np.std(lst) / np.mean(lst), np.mean(lst)]
+
+
+#--------------------------------------------- Get sat prob feature ------------------------------------------#  
+
+def get_sat_prob(formula, num_vars):
+    bi_clause_occ_dic = {}
+    ter_clause_occ_dic = {}
+    var_occ_bi = {}
+    var_occ_ter = {}
+    for i in range(1, num_vars + 1):
+        var_occ_bi[i] = Set()
+        var_occ_ter[i] = Set()
+    for clause in formula:
+        c = get_c_string(clause)
+        if len(clause) == 2:
+            if c in bi_clause_occ_dic:
+                bi_clause_occ_dic[c] += 1
+            else:
+                bi_clause_occ_dic[c] = 1
+            for var in clause:
+                var_occ_bi[abs(var)].add(c)
+        elif len(clause) == 3:
+            if c in ter_clause_occ_dic:
+                ter_clause_occ_dic[c] += 1
+            else:
+                 ter_clause_occ_dic[c] = 1
+            for var in clause:
+                var_occ_ter[abs(var)].add(c)
+    to_return = []
+    if len(bi_clause_occ_dic) != 0:
+        lst = []
+        for key in bi_clause_occ_dic:
+            lst.append(bi_clause_occ_dic[key])
+        to_return += add_stat(lst)
+        lst = []
+        for key in var_occ_bi:
+            lst.append(len(var_occ_bi[key])/float(len(bi_clause_occ_dic)))
+        to_return += add_stat(lst)
+    else:
+        lst = [0]
+        to_return += add_stat(lst)
+        to_return += add_stat(lst)
+    if len(ter_clause_occ_dic) != 0:
+        lst = []
+        for key in ter_clause_occ_dic:
+            lst.append(ter_clause_occ_dic[key])
+        to_return += add_stat(lst)
+        lst = []
+        for key in var_occ_ter:
+            lst.append(len(var_occ_ter[key])/float(len(ter_clause_occ_dic)))
+        to_return += add_stat(lst)
+    else:
+        lst = [0]
+        to_return += add_stat(lst)
+        to_return += add_stat(lst)
+    return to_return
+
+def get_c_string(clause):
+    s = ""
+    for i in range(len(clause)):
+        clause[i] = abs(clause[i])
+    clause.sort()
+    for ele in clause:
+        s += str(ele) + "-"
+    return s[:-1]
+
 
 #-----------------------------------------------statistics-------------------------------------------------#                                                           
 
