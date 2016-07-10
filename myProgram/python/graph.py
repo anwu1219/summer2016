@@ -17,9 +17,19 @@ from sets import Set
 This file takes in a dimacs file, calculates the features of it and stores them in a 
 .txt file.
 """
-def main(argv1, argv2, argv3):
-    source = argv1
-    SAT = argv2
+def main():
+#    try:
+#        source = argv1
+#    except:
+    source = sys.argv[1]
+#    try: 
+#    SAT = argv2
+#    except:
+    SAT = sys.argv[2]
+#    try:
+#        out_name = argv3
+#    except:
+    out_name = sys.argv[3]
     cnf = open(source)
     content = cnf.readlines()
     while content[0].split()[0] == 'c':
@@ -67,9 +77,9 @@ def main(argv1, argv2, argv3):
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable 
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
-    features += get_sat_prob(formula, num_vars)
+#    features += get_sat_prob(formula, num_vars)
     features += [SAT]
-    with open(argv3, 'a') as out_file:
+    with open(out_name, 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
 
 
@@ -350,4 +360,4 @@ def add_stat_normalized(lst, num_vars):
 
 
 if __name__ == "__main__":
-    main(argv1, argv2, argv3)
+    main()
