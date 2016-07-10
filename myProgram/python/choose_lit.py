@@ -9,6 +9,7 @@ import math
 from pulp import *
 from sklearn.ensemble import RandomForestClassifier
 import random
+from sets import Set
 from Queue import PriorityQueue
 #------------------------------------------------------------------------- Main Methods Called from C++ -------------------------------------------------------------#
 
@@ -30,11 +31,11 @@ def choose_lit(current_formula, num_vars, classifier):
 def train_model():
     X = []
     Y = []
-    TRAINSET = "data_prob_feat_balanced_with_original_test1.txt"
+    TRAINSET = "data_prob_feat_balanced_with_original_train1.txt"
     with open(TRAINSET, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
-            line =line.split()[2:] # skip the formula identifier, num_var, and num_clause                                                                          
+            line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
             line = map(float, line)
             X.append(line[:-1])
             Y.append(line[-1])
@@ -107,7 +108,7 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
         if contains_empty(new_dimacs_p): # There are empty clauses                              
             continue
         try:
-            features_p = get_features(new_dimacs_p[1:])#[2:]                                    
+            features_p = get_features(new_dimacs_p[1:])#[2:]
             prob = classifier.predict_proba([features_p])[:,1][0]
         except:
             print "Prediction failed"
@@ -229,6 +230,7 @@ def contains_empty(content):
 
 def get_features(content):
     #Computing formula features
+    content = remove_duplicate(content)
     parameters = content[0]
     formula = content[1:] # The clause part of the dimacs file                                                                                  
     num_vars = int(parameters[2]) # AW Number of variables                                                                                      
@@ -247,7 +249,7 @@ def get_features(content):
     features.append(float(num_clause) / num_vars) # Clause variable ratio                                                                   
     features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause
     features += get_binary(formula, num_clause)   # Ratio of binary clause              
-    features.append(ratio_horn_clauses(formula, num_vars, num_clause));
+    features += ratio_horn_clauses(formula, num_vars, num_clause)
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable                      
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
@@ -353,7 +355,7 @@ def ratio_horn_clauses(formula, num_vars, num_clause):
             num_horn += 1
         if num_neg <= 1:
             num_rev_horn += 1
-    return 1.0 * num_horn / num_clause#, 1.0 * num_rev_horn / num_clause, lst
+    return [1.0 * num_horn / num_clause, 1.0 * num_rev_horn / num_clause]#, lst
 
 def pos_neg_lits(clause):
     # This is a helper function for ratio_horn_clauses();                                                                              
@@ -498,6 +500,25 @@ def get_c_string(clause):
         s += str(ele) + "-"
     return s[:-1]
 
+def get_cl_string(clause):
+    s = ""
+    clause.sort()
+    for ele in clause:
+        s += str(ele) + "-"
+    return s[:-1]
+
+def remove_duplicate(content):
+    new_content = [content[0]]
+    cs = Set()
+    num_clause = 0
+    for line in content[1:]:
+        c = get_cl_string(line)
+        if c not in cs:
+            num_clause += 1
+            new_content.append(line)
+            cs.add(c)
+    new_content[0][3] = num_clause
+    return new_content
 
 #-----------------------------------------------statistics-------------------------------------------------#                                                           
 
