@@ -17,9 +17,9 @@ from sets import Set
 This file takes in a dimacs file, calculates the features of it and stores them in a 
 .txt file.
 """
-def main():
-    source = sys.argv[1]
-    SAT = sys.argv[2]
+def main(argv1, argv2, argv3):
+    source = argv1
+    SAT = argv2
     cnf = open(source)
     content = cnf.readlines()
     while content[0].split()[0] == 'c':
@@ -69,7 +69,7 @@ def main():
     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
     features += get_sat_prob(formula, num_vars)
     features += [SAT]
-    with open(sys.argv[3], 'a') as out_file:
+    with open(argv3, 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
 
 
@@ -350,4 +350,4 @@ def add_stat_normalized(lst, num_vars):
 
 
 if __name__ == "__main__":
-    main()
+    main(argv1, argv2, argv3)
