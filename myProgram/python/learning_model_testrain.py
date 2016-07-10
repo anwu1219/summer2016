@@ -54,19 +54,19 @@ Y_test = []
 with open(TRAIN_FILE_NAME, 'r') as in_file:
 	data_set = in_file.readlines()
 	for line in data_set:
-		line =line.split()[3:] # skip the formula identifier, num_var, and num_clause
+		line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
 		line = map(float, line)
                 #               X.append([line[0]])
-                X.append([line[0]] + line[12:17] + line[22:-1])
+                X.append(line[:-1])
                 Y.append(line[-1])
 
 with open(TEST_FILE_NAME, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
-                line =line.split()[3:] # skip the formula identifier, num_var, and num_clause
+                line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
                 line = map(float, line)
 #                X_test.append([line[0]])
-                X_test.append([line[0]] + line[12:17] + line[22:-1])
+                X_test.append(line[:-1])
                 Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
