@@ -46,7 +46,7 @@ def main():
     features = []
     features.append(num_vars) 
     # print "1 num_vars", num_vars
-#    features.append(num_clause)
+    features.append(num_clause)
     # print "2 num_clause", num_clause
     # print "3 Clause variable ratio",float(num_clause) / num_vars
     features.append(float(num_clause) / num_vars) # Clause variable ratio
