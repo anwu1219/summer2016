@@ -34,12 +34,11 @@ def main():
     content = cnf.readlines()
     while content[0].split()[0] == 'c':
         content = content[1:]
-
     while len(content[-1].split()) <= 1:
         content = content[:-1]
-
+    content = remove_duplicate(content)
     #Computing formula features
-    parameters = content[0].split() 
+    parameters = content[0]
     formula = content[1:] # The clause part of the dimacs file
     num_vars = int(parameters[2]) # AW Number of variables
     if num_vars == 0:
@@ -84,15 +83,33 @@ def main():
 
 
 #--------------------------------------------feature extraction methods-------------------------------------#
+def get_cl_string(clause):
+    s = ""
+    clause.sort()
+    for ele in clause:
+        s += str(ele) + "-"
+    return s[:-1]
+
+def remove_duplicate(content):
+    new_content = [content[0].split()]
+    cs = Set()
+    num_clause = 0
+    for line in content[1:]:
+        line = map(int, line.split())[:-1]
+        c = get_cl_string(line)
+        if c not in cs:
+            num_clause += 1
+            new_content.append(line)
+            cs.add(c)
+    new_content[0][3] = num_clause
+    return new_content
+
 def preprocess_VIG(formula, VIG):
     """
     Transforms a formula into int matrix
     Builds VIG.
     """
     for cn in range(len(formula)):
-        formula[cn] = formula[cn].split()[:-1]
-        for i in range(len(formula[cn])):
-            formula[cn][i] = int(formula[cn][i])
         for i in range(len(formula[cn])-1):
             for j in range(len(formula[cn]))[i+1:]:
                 VIG.add_edge(abs(formula[cn][i]), abs(formula[cn][j]))    
