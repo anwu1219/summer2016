@@ -31,7 +31,7 @@ def choose_lit(current_formula, num_vars, classifier):
 def train_model():
     X = []
     Y = []
-    TRAINSET = "data_prob_feat_balanced_with_original_train1.txt"
+    TRAINSET = "data_prob_feat_balanced_with_original_train2.txt"
     with open(TRAINSET, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
