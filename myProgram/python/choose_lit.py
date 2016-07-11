@@ -256,8 +256,8 @@ def get_features(content):
     features += get_binary(formula, num_clause)   # Ratio of binary clause              
     features += ratio_horn_clauses(formula, num_vars, num_clause)
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable                      
-    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
-    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
+#    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
+#    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
     features += get_sat_prob(formula, num_vars)
     return features
 

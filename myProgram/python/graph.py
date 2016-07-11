@@ -8,6 +8,7 @@ import scipy as sp
 import math
 from pulp import *
 from sets import Set
+import timeit
 #import csv
 #import matplotlib.pyplot as plt
 
@@ -45,6 +46,7 @@ def main():
     num_clause = int(parameters[3]) # AW Number of variables
     if num_clause == 0:
         return 
+    start = timeit.default_timer()
     VIG = nx.Graph() 
     VIG.add_nodes_from(range(num_vars+1)[1:])
     VCG = nx.Graph()
@@ -73,9 +75,20 @@ def main():
     # print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
     # print "21-25 Occurence of positive and negative literals for each variable", add_stat(get_pos_neg_occ(formula, num_vars))  
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable 
+    end = timeit.default_timer()
+    print "cheap features", end-start
+    start = timeit.default_timer()
     features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
+    end = timeit.default_timer()
+    print "mod",  end-start
+    start = timeit.default_timer()
     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
+    end =  timeit.default_timer()
+    print "LPSlack", end-start
+    start = timeit.default_timer()
     features += get_sat_prob(formula, num_vars)
+    end = timeit.default_timer()
+    print "sat_prob", end-start
     features += [SAT]
     with open(out_name, 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
