@@ -57,7 +57,7 @@ with open(TRAIN_FILE_NAME, 'r') as in_file:
 		line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
 		line = map(float, line)
                 #               X.append([line[0]])
-                X.append(line[:-1])
+                X.append(line[:12] + line[14:-1])
                 Y.append(line[-1])
 
 with open(TEST_FILE_NAME, 'r') as in_file:
@@ -66,7 +66,8 @@ with open(TEST_FILE_NAME, 'r') as in_file:
                 line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
                 line = map(float, line)
 #                X_test.append([line[0]])
-                X_test.append(line[:-1])
+#                X_test.append(line[:-1])
+                X_test.append(line[:12] + line[14:-1])
                 Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
@@ -87,7 +88,7 @@ clf1 = RandomForestClassifier(n_estimators = 100,  n_jobs = -1)
 #clf1 = LinearSVC()
 # print "Learning..."
 
-clf1 = joblib.load("testcasesForMLSat/prob_feat2/prob_feat2.pkl")
+#clf1 = joblib.load("testcasesForMLSat/prob_feat2/prob_feat2.pkl")
 clf1.fit(X, Y)
 try:
         print "Feature importance:", clf1.feature_importances_ 
@@ -95,7 +96,7 @@ except AttributeError:
         pass
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
-#joblib.dump(clf1, 'prob_feat2.pkl')
+joblib.dump(clf1, 'testcasesForMLSat/prob_feat2/prob_feat2.pkl')
 probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []
