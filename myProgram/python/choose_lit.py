@@ -11,6 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 import random
 from sets import Set
 from Queue import PriorityQueue
+from sklearn.externals import joblib
 #------------------------------------------------------------------------- Main Methods Called from C++ -------------------------------------------------------------#
 
 def choose_lit(current_formula, num_vars, classifier):
@@ -29,18 +30,22 @@ def choose_lit(current_formula, num_vars, classifier):
 
 
 def train_model():
-    X = []
-    Y = []
-    TRAINSET = "data_prob_feat_balanced_with_original_train2.txt"
-    with open(TRAINSET, 'r') as in_file:
-        data_set = in_file.readlines()
-        for line in data_set:
-            line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
-            line = map(float, line)
-            X.append(line[:-1])
-            Y.append(line[-1])
-    clf1 = RandomForestClassifier(n_estimators = 50,  n_jobs = -1)
-    return clf1.fit(X, Y)
+    try:
+        return joblib.load("prob_feat2/prob_feat2.pkl")
+    except:
+        print "hey!"
+        X = []
+        Y = []
+        TRAINSET = "data_prob_feat_balanced_with_original_train2.txt"
+        with open(TRAINSET, 'r') as in_file:
+            data_set = in_file.readlines()
+            for line in data_set:
+                line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
+                line = map(float, line)
+                X.append(line[:-1])
+                Y.append(line[-1])
+        clf1 = RandomForestClassifier(n_estimators = 99,  n_jobs = -1)
+        return clf1.fit(X, Y)
 
 
 

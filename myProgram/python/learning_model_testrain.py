@@ -10,6 +10,7 @@ from sklearn.feature_selection import SelectKBest, chi2
 from sklearn import preprocessing
 import sys
 from sklearn.preprocessing import PolynomialFeatures
+from sklearn.externals import joblib
 
 def search_for_best_features(X, X_test, Y, Y_test, clf):
 	new_X = X[:, 0:1]
@@ -77,7 +78,7 @@ print np.sum(Y_test), "negative samples out of", len(Y_test), "in test set.", "B
 #poly.fit_transform(X)
 #poly.fit_transform(X_test)
 a = [1e-6, 1e-5, 1e-4, 0.001,0.01, 0.1, 1.0, 10.0,100]
-clf1 = RandomForestClassifier(n_estimators = 50,  n_jobs = -1)
+clf1 = RandomForestClassifier(n_estimators = 100,  n_jobs = -1)
 
 #clf1 = DecisionTreeClassifier()
 #clf1 = KNeighborsClassifier(n_neighbors = 39, n_jobs = -1, weights = 'distance')
@@ -85,6 +86,8 @@ clf1 = RandomForestClassifier(n_estimators = 50,  n_jobs = -1)
 
 #clf1 = LinearSVC()
 # print "Learning..."
+
+clf1 = joblib.load("testcasesForMLSat/prob_feat2/prob_feat2.pkl")
 clf1.fit(X, Y)
 try:
         print "Feature importance:", clf1.feature_importances_ 
@@ -92,6 +95,7 @@ except AttributeError:
         pass
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
+#joblib.dump(clf1, 'prob_feat2.pkl')
 probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []
