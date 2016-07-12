@@ -15,7 +15,7 @@ def main():
                         out.close()
                 else:   
                         print "This formula is already solved."
-        if action == '-ml': # Solve a formula if it is not solved
+        elif action == '-ml': # Solve a formula if it is not solved
                 in_name = sys.argv[2]
                 if len(sys.argv) == 4:
                         out_name = sys.argv[3] + '.sol'

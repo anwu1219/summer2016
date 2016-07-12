@@ -66,6 +66,8 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
         new_dimacs = in_content
 #    assert(len(all_vars) == len(unassigned)) can't assert this
     q = PriorityQueue()
+    lits = []
+    feats = []
     for i in range(len(all_vars)):  # Positive literal run
         var =  all_vars[i]
         try:
@@ -81,23 +83,10 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
         if contains_empty(new_dimacs_p): # There are empty clauses
             continue
         try:
-            features_p = get_features(new_dimacs_p[1:])#[2:]
-            prob = classifier.predict_proba([features_p])[:,1][0]
+            lits.append(unassigned[i])
+            feats.append(get_features(new_dimacs_p[1:]))#[2:]
         except:
             print "Prediction failed"            
-#        if prob >= 0.95:
-#            return unassigned[i]
-#        elif  prob <= 0.05:
-#            return -1 * unassigned[i]
-#        else:
-        if q.qsize() <= 3:
-            q.put((prob, unassigned[i]))
-        else:
-            temp = q.get()
-            if temp[0] < prob:
-                q.put((prob, unassigned[i]))
-            else:
-                q.put(temp)
     for i in range(len(all_vars)): # Negative literal run
         var =  -all_vars[i]
         try:
@@ -113,21 +102,23 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
         if contains_empty(new_dimacs_p): # There are empty clauses                              
             continue
         try:
-            features_p = get_features(new_dimacs_p[1:])#[2:]
-            prob = classifier.predict_proba([features_p])[:,1][0]
+            lits.append(-1 * unassigned[i])
+            feats.append(get_features(new_dimacs_p[1:]))
         except:
             print "Prediction failed"
-#        if prob >= 0.95:
-#            return -1 * unassigned[i]
-#        elif  prob <= 0.05:
-#            return unassigned[i]
-#        else:
+    if feats:
+        probs = classifier.predict_proba(feats)[:,1].tolist()
+    else:
+        return unassigned[0]
+    for i in range(len(probs)):
+        prob = probs[i]
+        lit = lits[i]
         if q.qsize() <= 3:
-            q.put((prob, -1 * unassigned[i]))
+            q.put((prob, lit))
         else:
             temp = q.get()
             if temp[0] < prob:
-                q.put((prob, -1 * unassigned[i]))
+                q.put((prob, lit))
             else:
                 q.put(temp)
     lst = []
