@@ -58,13 +58,13 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
     if len(unassigned) < num_vars:
         try:
             new_dimacs = unit_propagation(in_content)
-            new_dimacs, all_vars = shrink_formula_with_solution(new_dimacs, all_vars)
+            new_dimacs, all_vars, unassigned = shrink_formula_with_solution(new_dimacs, all_vars, copy.deepcopy(unassigned), unassigned)
         except:
             print "Fail to shrink input formulae"
             print in_content
     else:
         new_dimacs = in_content
-#    assert(len(all_vars) == len(unassigned)) can't assert this
+    assert(len(all_vars) == len(unassigned))
     q = PriorityQueue()
     lits = []
     feats = []
@@ -109,11 +109,12 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
     if feats:
         probs = classifier.predict_proba(feats)[:,1].tolist()
     else:
+        print "empty feats"
         return unassigned[0]
     for i in range(len(probs)):
         prob = probs[i]
         lit = lits[i]
-        if q.qsize() <= 3:
+        if q.qsize() < 3:
             q.put((prob, lit))
         else:
             temp = q.get()
@@ -199,9 +200,10 @@ def shrink_formula(content, num_vars):
     return content
 
 
-def shrink_formula_with_solution(content, solution):
+def shrink_formula_with_solution(content, solution, unassigned_copy, unassigned):
     for ele in range(1, len(solution)+1):
         if (not any(-ele in line for line in content[2:])) and (not any(ele in line for line in content[2:])):
+            #var does not appear in solution but has not been assigned                                                                                                      
             for i in range(2, len(content)):
                 content[i] = update_line(content[i], abs(ele))
             assert((ele in solution) or (-ele in solution))
@@ -210,9 +212,22 @@ def shrink_formula_with_solution(content, solution):
             else:
                 solution.remove(-ele)
             solution = update_sol(solution, abs(ele))
+            if ele in unassigned_copy:
+                index = unassigned_copy.index(ele)
+                unassigned_copy.remove(ele)
+                unassigned.pop(index)
+                print unassigned_copy
+                print unassigned
+            elif -ele in unassigned_copy:
+                index = unassigned_copy.index(-ele)
+                unassigned_copy.remove(-ele)
+                unassigned.pop(index)
+                print unassigned_copy
+                print unassigned
+            unassigned_copy = update_sol(unassigned_copy, abs(ele))
             content[1][2] = int(content[1][2]) - 1
-            return shrink_formula_with_solution(content, solution)
-    return content, solution
+            return shrink_formula_with_solution(content, solution, unassigned_copy, unassigned)
+    return content, solution, unassigned
 
 
 def contains_empty(content):
@@ -248,7 +263,7 @@ def get_features(content):
     features += ratio_horn_clauses(formula, num_vars, num_clause)
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable                      
 #    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
-    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
+#    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
     features += get_sat_prob(formula, num_vars)
     return features
 
