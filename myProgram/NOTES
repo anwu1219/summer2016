@@ -18,3 +18,11 @@ data_ordered_balanced_train1.txt
 data_ordered_balanced_with_original_test1.txt 
 data_ordered_balanced_with_original_train1.txt
 
+THE following data files contains 32 features, with occurrence of binary clauses, ternary clauses... 
+data_orig_prob_feat_test2.txt   
+data_prob_feat_balanced_test2.txt               
+data_prob_feat_balanced_train2.txt              
+data_orig_prob_feat_train2.txt  
+data_prob_feat_balanced_with_original_test2.txt
+data_prob_feat_balanced_with_original_train2.txt
+
