@@ -1,12 +1,12 @@
 import copy
 import sys
 sys.path.append("/Library/Python/2.7/site-packages")
-import community
-import networkx as nx
+#import community
+#import networkx as nx
 import numpy as np
-import scipy as sp
+#import scipy as sp
 import math
-from pulp import *
+#from pulp import *
 from sklearn.ensemble import RandomForestClassifier
 import random
 from sets import Set
@@ -244,12 +244,12 @@ def get_features(content):
     num_clause = int(parameters[3]) # AW Number of variables                                                                                    
     if num_clause == 0:
         return
-    VIG = nx.Graph()
-    VIG.add_nodes_from(range(num_vars+1)[1:])
-    VCG = nx.Graph()
-    VCG.add_nodes_from(range(num_vars + num_clause + 1)[1:])
-    preprocess_VIG(formula, VIG) # Build a VIG                                                                                                  
-    preprocess_VCG(formula, VCG, num_vars) # Build a VCG                                                                                   
+#    VIG = nx.Graph()
+#    VIG.add_nodes_from(range(num_vars+1)[1:])
+#    VCG = nx.Graph()
+#    VCG.add_nodes_from(range(num_vars + num_clause + 1)[1:])
+#    preprocess_VIG(formula, VIG) # Build a VIG                                                                                                  
+#    preprocess_VCG(formula, VCG, num_vars) # Build a VCG                                                                                   
     features = []
     features.append(float(num_clause) / num_vars) # Clause variable ratio                                                                   
     features += add_stat(get_pos_neg_ratio(formula))[2:]    # Occurence of positive and negative literals in each clause
