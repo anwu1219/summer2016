@@ -9,15 +9,39 @@ WARNING: for repeatability, setting FPU to use double precision
 | Conflicts |          ORIGINAL         |          LEARNT          | Progress |
 |           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |
 ===============================================================================
-|       100 |     100      430     1290 |      157      100      6 |  0.020 % |
+Run 0
+1
+36
+61
+71
+-50
+-8
+90
+69
+83
+76
+54
+95
+-14
+2
+-41
+-75
+93
+-12
+80
+6
+13
+16
+37
+97
+0
 ===============================================================================
-restarts              : 2
-conflicts             : 112            (inf /sec)
-decisions             : 170            (0.00 % random) (inf /sec)
-propagations          : 2655           (inf /sec)
-conflict literals     : 694            (16.79 % deleted)
-Memory used           : 19.00 MB
-CPU time              : 0 s
+restarts              : 1
+conflicts             : 0              (0 /sec)
+decisions             : 25             (0.00 % random) (0 /sec)
+propagations          : 96             (0 /sec)
+conflict literals     : 0              (-nan % deleted)
+Memory used           : 1301.00 MB
+CPU time              : 363.232 s
 
 SATISFIABLE
-uf100-0105 1 98 141 2622 0 SATISFIABLE

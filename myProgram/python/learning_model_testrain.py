@@ -1,10 +1,11 @@
 from sklearn import metrics
 import numpy as np
-from sklearn.linear_model import RidgeCV, LogisticRegressionCV
+from sklearn.linear_model import RidgeCV, LogisticRegressionCV, LogisticRegression, RidgeClassifier, SGDClassifier
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, GradientBoostingRegressor
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.svm import LinearSVC
+from sklearn.ensemble import AdaBoostClassifier, AdaBoostRegressor
+from sklearn.svm import LinearSVC, SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn import preprocessing
@@ -57,7 +58,7 @@ with open(TRAIN_FILE_NAME, 'r') as in_file:
 		line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
 		line = map(float, line)
                 #               X.append([line[0]])
-                X.append(line[:12] + line[16:-1])
+                X.append(line[:12] + line[14:-1])
                 Y.append(line[-1])
 
 with open(TEST_FILE_NAME, 'r') as in_file:
@@ -67,7 +68,7 @@ with open(TEST_FILE_NAME, 'r') as in_file:
                 line = map(float, line)
 #                X_test.append([line[0]])
 #                X_test.append(line[:-1])
-                X_test.append(line[:12] + line[16:-1])
+                X_test.append(line[:12] + line[14:-1])
                 Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
@@ -76,16 +77,16 @@ with open(TEST_FILE_NAME, 'r') as in_file:
 print np.sum(Y), "negative samples out of", len(Y), "in train set"
 print np.sum(Y_test), "negative samples out of", len(Y_test), "in test set.", "Baseline is", np.sum(Y_test)/len(Y_test)
 #poly = PolynomialFeatures(2)
-#poly.fit_transform(X)
-#poly.fit_transform(X_test)
+#X= poly.fit_transform(X)
+#X_test = poly.fit_transform(X_test)
 a = [1e-6, 1e-5, 1e-4, 0.001,0.01, 0.1, 1.0, 10.0,100]
 clf1 = RandomForestClassifier(n_estimators = 100,  n_jobs = -1)
 
 #clf1 = DecisionTreeClassifier()
-#clf1 = KNeighborsClassifier(n_neighbors = 39, n_jobs = -1, weights = 'distance')
-#clf1 = LogisticRegressionCV(Cs = a)
+#clf1 = KNeighborsClassifier(n_neighbors = 11, n_jobs = -1, weights = 'distance')
+#clf1 = SGDClassifier()
 
-#clf1 = LinearSVC()
+#clf1 = AdaBoostClassifier(n_estimators = 1000)
 # print "Learning..."
 
 #clf1 = joblib.load("testcasesForMLSat/prob_feat2/prob_feat2.pkl")
@@ -96,7 +97,7 @@ except AttributeError:
         pass
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
-joblib.dump(clf1, 'testcasesForMLSat/prob_feat2/prob_feat2.pkl')
+#joblib.dump(clf1, 'testcasesForMLSat/prob_feat2/prob_feat2.pkl')
 probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []

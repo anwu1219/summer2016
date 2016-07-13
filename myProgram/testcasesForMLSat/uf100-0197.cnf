@@ -3,7 +3,7 @@ c    horn? no
 c    forced? no 
 c    mixed sat? no 
 c    clause length = 3 
-p cnf 100  430 
+p cnf 100  430
  -44 -27 -83 0
 -51 -78 89 0
 -74 55 68 0

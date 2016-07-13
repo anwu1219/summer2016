@@ -59,6 +59,8 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
         try:
             new_dimacs = unit_propagation(in_content)
             new_dimacs, all_vars, unassigned = shrink_formula_with_solution(new_dimacs, all_vars, copy.deepcopy(unassigned), unassigned)
+            if new_dimacs == 'G':
+                return unassigned
         except:
             print "Fail to shrink input formulae"
             print in_content
@@ -114,7 +116,7 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
     for i in range(len(probs)):
         prob = probs[i]
         lit = lits[i]
-        if q.qsize() < 3:
+        if q.qsize() < 4:
             q.put((prob, lit))
         else:
             temp = q.get()
@@ -215,15 +217,11 @@ def shrink_formula_with_solution(content, solution, unassigned_copy, unassigned)
             if ele in unassigned_copy:
                 index = unassigned_copy.index(ele)
                 unassigned_copy.remove(ele)
-                unassigned.pop(index)
-                print unassigned_copy
-                print unassigned
+                return 'G', 'G', unassigned[index]
             elif -ele in unassigned_copy:
                 index = unassigned_copy.index(-ele)
                 unassigned_copy.remove(-ele)
-                unassigned.pop(index)
-                print unassigned_copy
-                print unassigned
+                return 'G', 'G', unassigned[index]
             unassigned_copy = update_sol(unassigned_copy, abs(ele))
             content[1][2] = int(content[1][2]) - 1
             return shrink_formula_with_solution(content, solution, unassigned_copy, unassigned)
@@ -263,7 +261,7 @@ def get_features(content):
     features += ratio_horn_clauses(formula, num_vars, num_clause)
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable                      
 #    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
-#    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
+    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
     features += get_sat_prob(formula, num_vars)
     return features
 
