@@ -55,21 +55,25 @@ Y_test = []
 with open(TRAIN_FILE_NAME, 'r') as in_file:
 	data_set = in_file.readlines()
 	for line in data_set:
-		line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
-		line = map(float, line)
-                #               X.append([line[0]])
-                X.append(line[:12] + line[14:-1])
-                Y.append(line[-1])
+		line =line.split() # skip the formula identifier, num_var, and num_clause
+                if "uf100" in line[0] or "uuf100" in line[0]:
+                        line = line[2:]
+                        line = map(float, line)
+                        #               X.append([line[0]])
+                        X.append(line[:12] + line[14:-1])
+                        Y.append(line[-1])
 
 with open(TEST_FILE_NAME, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
-                line =line.split()[2:] # skip the formula identifier, num_var, and num_clause
-                line = map(float, line)
-#                X_test.append([line[0]])
-#                X_test.append(line[:-1])
-                X_test.append(line[:12] + line[14:-1])
-                Y_test.append(line[-1])
+                line =line.split() # skip the formula identifier, num_var, and num_clause
+                if "uf100" in line[0] or "uuf100" in line[0]:
+                        line = line[2:]
+                        line = map(float, line)
+                        #                X_test.append([line[0]])
+                        #                X_test.append(line[:-1])
+                        X_test.append(line[:12] + line[14:-1])
+                        Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
 #X = scaler.transform(X)
@@ -84,12 +88,12 @@ clf1 = RandomForestClassifier(n_estimators = 100,  n_jobs = -1)
 
 #clf1 = DecisionTreeClassifier()
 #clf1 = KNeighborsClassifier(n_neighbors = 11, n_jobs = -1, weights = 'distance')
-#clf1 = SGDClassifier()
+clf1 = LogisticRegressionCV(Cs=a)
 
 #clf1 = AdaBoostClassifier(n_estimators = 1000)
 # print "Learning..."
 
-#clf1 = joblib.load("testcasesForMLSat/prob_feat2/prob_feat2.pkl")
+#clf1 = joblib.load("testcasesForMLSat/prob_feat3/prob_feat3.pkl")
 clf1.fit(X, Y)
 try:
         print "Feature importance:", clf1.feature_importances_ 
@@ -97,14 +101,15 @@ except AttributeError:
         pass
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
-#joblib.dump(clf1, 'testcasesForMLSat/prob_feat2/prob_feat2.pkl')
+joblib.dump(clf1, 'testcasesForMLSat/prob_feat3/prob_feat3.pkl')
 probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []
 for i in range(len(probs)):
-        if probs[i] >= 0.9 or probs[i] <= 0.1:
+        if probs[i] >= 0.97 or probs[i] <= 0.03:
                 X_test_hp.append(X_test[i])
                 Y_test_hp.append(Y_test[i])
+print len(X_test_hp)
 print "High prob test score:", clf1.score(X_test_hp, Y_test_hp)
 # #predict2 = clf2.score(X_test, Y_test)
 # 	print predict1
