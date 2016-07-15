@@ -1,5 +1,6 @@
 from sklearn import preprocessing
 import sys
+import subprocess
 sys.path.append("/Library/Python/2.7/site-packages")
 import community
 import networkx as nx
@@ -78,11 +79,11 @@ def main():
 #    end = timeit.default_timer()
 #    print "cheap features", end-start
 #    start = timeit.default_timer()
-    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
+#    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
 #    end = timeit.default_timer()
 #    print "mod",  end-start
 #    start = timeit.default_timer()
-    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
+     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
 #    end =  timeit.default_timer()
 #    print "LPSlack", end-start
 #    start = timeit.default_timer()
@@ -253,6 +254,41 @@ def get_modularities(VIG, VCG, graphic):
 
 #-------------------------------------------LPSLACK coeff variation----------------------------------------#
 
+def get_LPSLACK_with_LP_Solve(formula, num_vars, num_clause):
+    v = [0.0] * (num_vars + 1)
+    for line in formula:
+        for ele in line:
+            if ele > 0:
+                v[ele] += 1
+            else:
+                v[abs(ele)] -= 1
+    s = ""
+    for i in range(1, num_vars + 1):
+        if v[i] > 0:
+            if s == "":
+                s = str(v[i]) + " x%d" %i
+            else:
+                s = s + " + %d x%d" %(v[i], i)
+        elif v[i] < 0:
+            if s == "":
+                s = str(v[i]) + " x%d" %i
+            else:
+                s = s + " - %d x%d " %(abs(v[i]), i)
+    s = "max: " + s[:-1] + ";\n";
+    for i in range(num_clause):
+        for j in range(len(formula[i])):
+            if formula[i][j] < 0:
+                s = s + "1 - x" + str(abs(formula[i][j])) + " + "
+            else:
+                s = s + "x" + str(abs(formula[i][j])) + " + "
+        s = s[:-2] + ">= 1;\n"
+    for i in range(1, num_vars + 1):
+        s = s + "0 <= x%d  <= 1;\n" %i
+    with open("s.lp", 'w') as out_file:
+        out_file.write(s);
+    subprocess.call("lp_solve s.lp", shell=True)
+
+
 def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
     v = [0.0] * (num_vars + 1)
     for line in formula:
@@ -265,6 +301,7 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
     LPVar = [0]
     for i in range(1, num_vars + 1):
         LPVar.append(LpVariable("x%d" %i, 0, 1))
+    
 
     prob = LpProblem("problem", LpMaximize)
      
@@ -284,8 +321,6 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
         exp = exp + v[i] * LPVar[i]
     prob += exp
     prob.solve()
-    # solve the problem
-    #print LpStatus[status]
     lst = []
     for i in range(1, len(LPVar)):
         lst.append(LPVar[i].varValue)

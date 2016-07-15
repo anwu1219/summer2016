@@ -31,7 +31,7 @@ def choose_lit(current_formula, num_vars, classifier):
 
 def train_model():
     try:
-        return joblib.load("prob_feat2/prob_feat2.pkl")
+        return joblib.load("prob_feat3/prob_feat3.pkl")
     except:
         print "hey!"
         X = []
