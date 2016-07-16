@@ -31,7 +31,7 @@ def choose_lit(current_formula, num_vars, classifier):
 
 def train_model():
     try:
-        return joblib.load("prob_feat3/prob_feat3.pkl")
+        return joblib.load("prob_feat4/prob_feat4.pkl")
     except:
         print "hey!"
         X = []
@@ -438,11 +438,12 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
         try:
             lst[i] = min(float(lst[i]), 1 - float(lst[i]))
         except TypeError:
-            print "Type error in LPSlack", sys.argv[1]
-            return [0, 0]
+            print "Type error in LPSlack"
+            return [0]
     if np.mean(lst) == 0:
-        return [0, 0]
-    return [np.std(lst) / np.mean(lst), np.mean(lst)]
+        return [0]
+    return [np.mean(lst)]
+#    return [np.std(lst) / np.mean(lst), np.mean(lst)]
 
 
 #--------------------------------------------- Get sat prob feature ------------------------------------------#  
@@ -474,29 +475,19 @@ def get_sat_prob(formula, num_vars):
     to_return = []
     if len(bi_clause_occ_dic) != 0:
         lst = []
-        for key in bi_clause_occ_dic:
-            lst.append(bi_clause_occ_dic[key])
-        to_return += add_stat(lst)
-        lst = []
         for key in var_occ_bi:
             lst.append(len(var_occ_bi[key])/float(len(bi_clause_occ_dic)))
         to_return += add_stat(lst)
     else:
         lst = [0]
         to_return += add_stat(lst)
-        to_return += add_stat(lst)
     if len(ter_clause_occ_dic) != 0:
-        lst = []
-        for key in ter_clause_occ_dic:
-            lst.append(ter_clause_occ_dic[key])
-        to_return += add_stat(lst)
         lst = []
         for key in var_occ_ter:
             lst.append(len(var_occ_ter[key])/float(len(ter_clause_occ_dic)))
         to_return += add_stat(lst)
     else:
         lst = [0]
-        to_return += add_stat(lst)
         to_return += add_stat(lst)
     return to_return
 
