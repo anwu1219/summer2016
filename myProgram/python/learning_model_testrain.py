@@ -60,7 +60,7 @@ with open(TRAIN_FILE_NAME, 'r') as in_file:
                         line = line[2:]
                         line = map(float, line)
                         #               X.append([line[0]])
-                        X.append(line[:12]  + line[15:16]  + line[20:24] + line[28:-1])
+                        X.append(line[:14]  + line[18:22] + line[26:-1])
                         Y.append(line[-1])
 
 with open(TEST_FILE_NAME, 'r') as in_file:
@@ -72,7 +72,7 @@ with open(TEST_FILE_NAME, 'r') as in_file:
                         line = map(float, line)
                         #                X_test.append([line[0]])
                         #                X_test.append(line[:-1])
-                        X_test.append(line[:12] +line[15:16] + line[20:24] + line[28:-1])
+                        X_test.append(line[:14]  + line[18:22] + line[26:-1])
                         Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
@@ -101,7 +101,7 @@ except AttributeError:
         print "Weight", clf1.coef_
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
-joblib.dump(clf1, 'testcasesForMLSat/prob_feat4/prob_feat4.pkl')
+#joblib.dump(clf1, 'testcasesForMLSat/prob_feat4/prob_feat4.pkl')
 probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []

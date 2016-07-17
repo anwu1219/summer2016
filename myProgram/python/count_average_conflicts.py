@@ -1,9 +1,9 @@
 import sys
+import numpy as np
 
-s = 0
-count = 0
+lst = []
 with open(sys.argv[1], 'r') as in_file:
     for line in in_file:
-        s += float(line.split()[2])
-        count += 1
-print s / count
+        lst.append(float(line.split()[2]))
+print "mean", np.mean(lst)
+print "median", np.median(lst)
