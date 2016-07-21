@@ -2,7 +2,7 @@ import sys
 import os
 
 line = []
-if os.path.isfile(sys.argv[1].split('.')[0] + ".osol"):
+if os.path.isfile(sys.argv[1].split('.')[0] + ".sol"):
     with open(sys.argv[1], 'r') as in_file:
         content = in_file.readlines()
         if "SAT" in content[-1]:

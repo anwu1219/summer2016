@@ -31,7 +31,7 @@ def choose_lit(current_formula, num_vars, classifier):
 
 def train_model():
     try:
-        return joblib.load("prob_feat3/prob_feat3.pkl")
+        return joblib.load("prob_feat4/prob_feat4.pkl")
     except:
         print "hey!"
         X = []
@@ -115,8 +115,9 @@ def write_SAT_file(in_content, unassigned, num_vars, classifier):
         return unassigned[0]
     for i in range(len(probs)):
         prob = probs[i]
+        print lits[i], prob
         lit = lits[i]
-        if q.qsize() < 4:
+        if q.qsize() < 3:
             q.put((prob, lit))
         else:
             temp = q.get()
@@ -323,7 +324,7 @@ def get_pos_neg_occ(formula, num_vars):
     POSNEG_ratio_var_mean = 0
     for i in range(num_vars + 1)[1:]:
         assert(dic[i][0] != 0)
-        POSNEG_ratio_var_mean += abs((0.5 - dic[i][1]) / dic[i][0])
+        POSNEG_ratio_var_mean += abs(0.5 - float(dic[i][1]) / dic[i][0])
     return add_stat(lst) + [POSNEG_ratio_var_mean * 2 / num_vars]
 
 def get_binary(formula, num_clause):
@@ -438,10 +439,11 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
         try:
             lst[i] = min(float(lst[i]), 1 - float(lst[i]))
         except TypeError:
-            print "Type error in LPSlack", sys.argv[1]
+            print "Type error in LPSlack"
             return [0, 0]
     if np.mean(lst) == 0:
         return [0, 0]
+        #    return [np.mean(lst)]
     return [np.std(lst) / np.mean(lst), np.mean(lst)]
 
 
@@ -474,29 +476,19 @@ def get_sat_prob(formula, num_vars):
     to_return = []
     if len(bi_clause_occ_dic) != 0:
         lst = []
-        for key in bi_clause_occ_dic:
-            lst.append(bi_clause_occ_dic[key])
-        to_return += add_stat(lst)
-        lst = []
         for key in var_occ_bi:
             lst.append(len(var_occ_bi[key])/float(len(bi_clause_occ_dic)))
         to_return += add_stat(lst)
     else:
         lst = [0]
         to_return += add_stat(lst)
-        to_return += add_stat(lst)
     if len(ter_clause_occ_dic) != 0:
-        lst = []
-        for key in ter_clause_occ_dic:
-            lst.append(ter_clause_occ_dic[key])
-        to_return += add_stat(lst)
         lst = []
         for key in var_occ_ter:
             lst.append(len(var_occ_ter[key])/float(len(ter_clause_occ_dic)))
         to_return += add_stat(lst)
     else:
         lst = [0]
-        to_return += add_stat(lst)
         to_return += add_stat(lst)
     return to_return
 
