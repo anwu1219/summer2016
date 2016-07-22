@@ -106,7 +106,7 @@ probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []
 for i in range(len(probs)):
-        if probs[i] >= 0.9 or probs[i] <= 0.1:
+        if probs[i] > 0.99 or probs[i] < 0.01:
                 X_test_hp.append(X_test[i])
                 Y_test_hp.append(Y_test[i])
 print len(X_test_hp)
