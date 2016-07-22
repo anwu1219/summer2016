@@ -76,20 +76,20 @@ def main():
     # print "Modularities of VIG & VCG", get_modularities(VIG, VCG, graphic = False)
     # print "21-25 Occurence of positive and negative literals for each variable", add_stat(get_pos_neg_occ(formula, num_vars))  
     features += get_pos_neg_occ(formula, num_vars)   # Occurence of positive and negative literals for each variable 
-    #    end = timeit.default_timer()
-    #    print "cheap features", end-start
-    #    start = timeit.default_timer()
-    #    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
-    #    end = timeit.default_timer()
-    #    print "mod",  end-start
-    #    start = timeit.default_timer()
-    features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
-    #    end =  timeit.default_timer()
-    #    print "LPSlack", end-start
-    #    start = timeit.default_timer()
+#    end = timeit.default_timer()
+#    print "cheap features", end-start
+#    start = timeit.default_timer()
+#    features += get_modularities(VIG, VCG, graphic = False) # Modularities of VIG & VCG
+#    end = timeit.default_timer()
+#    print "mod",  end-start
+#    start = timeit.default_timer()
+     features += get_LPSLACK_coeff_variation(formula, num_vars, num_clause)
+#    end =  timeit.default_timer()
+#    print "LPSlack", end-start
+#    start = timeit.default_timer()
     features += get_sat_prob(formula, num_vars)
-    #    end = timeit.default_timer()
-    #    print "sat_prob", end-start
+#    end = timeit.default_timer()
+#    print "sat_prob", end-start
     features += [SAT]
     with open(out_name, 'a') as out_file:
         out_file.write(source.split(".")[0] + " " + " ".join(map(str, features)) + "\n")
@@ -174,7 +174,11 @@ def get_pos_neg_occ(formula, num_vars):
     POSNEG_ratio_var_mean = 0
     for i in range(num_vars + 1)[1:]:
         if dic[i][0] != 0:
+<<<<<<< HEAD
             POSNEG_ratio_var_mean += abs(0.5 - float(dic[i][1]) / dic[i][0])
+=======
+            POSNEG_ratio_var_mean += abs((0.5 - float(dic[i][1]) / dic[i][0])
+>>>>>>> 1f43dae88451fdb4c53c1aaec4d793ccbeb6ea07
         else:
             print "Can't find variable", i, sys.argv[1]
             num_vars -= 1
