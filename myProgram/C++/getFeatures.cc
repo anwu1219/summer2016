@@ -31,9 +31,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "ClpSimplex.hpp"
 using namespace std;
 
-const vector<double> coefs = {-3.86515851e+00, 2.83465926e+00, 9.87928376e-02, -5.86586537e+00, 6.03585822e+00, 2.71703339e+00, 2.21661857e+00, 5.36610803e-01, -8.05975610e-02, -6.11138941e-01, 2.65656900e+00, 3.44573920e+00, -2.13359550e-06, -2.17445095e+01, 4.07360084e+00, 3.01420109e-01, -1.45283106e+00, 1.20557309e+01, -8.25112203e+00,  5.59772461e+00, -2.85966541e+00,  -4.29953825e+00};
-const double intercept = 9.22652748;
-
 vector<vector<int>> cur_formula = vector<vector<int>>();
 set<int> unassigned = set<int>();
 string clause_string_sign(vector<int> clause);
@@ -48,14 +45,34 @@ void add_stat_all(vector<double>& lst, vector<double>& feats);
 int main(int argc, char *argv[]){
   string line;
   ifstream myfile (argv[1]);
-  if (myfile.is_open())
-    {
-      while(getline(myfile,line))
-	{
-	  cout << line << '\n';
-	}
-      myfile.close();
+  int counter = 0;
+  vector<vector<int>> formula;
+  unsigned int num_vars = 0;
+  unsigned int num_clauses = 0;
+  if (myfile.is_open()){
+    getline(myfile,line);
+    string tok;
+    while (myfile >> tok){
+      if (counter == 4) break;
+      if (counter == 2) num_vars = atoi(tok.c_str());
+      if (counter == 3) num_clauses = atoi(tok.c_str());
+      counter++;
     }
+    int value;
+    vector<int> clause = vector<int>();
+    while ( myfile >> value){
+      if (value == 0){
+	formula.push_back(clause);
+	vector<int> clause = vector<int>();
+      }
+      else clause.push_back(value);
+    }
+    myfile.close();
+  }
+  vector<double> feats = getFeatures(formula, num_vars, num_clauses);
+  ofstream outputFile(argv[2], ios::app);
+  for (auto& feat : feats) outputFile << feat << " ";
+  outputFile << argv[3] << endl;
   return 0;
 }
 
