@@ -440,11 +440,11 @@ def get_LPSLACK_coeff_variation(formula, num_vars, num_clause):
             lst[i] = min(float(lst[i]), 1 - float(lst[i]))
         except TypeError:
             print "Type error in LPSlack"
-            return [0, 0]
+            return [0]
     if np.mean(lst) == 0:
-        return [0, 0]
-        #    return [np.mean(lst)]
-    return [np.std(lst) / np.mean(lst), np.mean(lst)]
+        return [0]
+    return [np.mean(lst)]
+#    return [np.std(lst) / np.mean(lst), np.mean(lst)]
 
 
 #--------------------------------------------- Get sat prob feature ------------------------------------------#  

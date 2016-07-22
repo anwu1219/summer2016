@@ -101,7 +101,7 @@ except AttributeError:
         print "Weight", clf1.coef_
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
-joblib.dump(clf1, 'testcasesForMLSat/prob_feat4/prob_feat4.pkl')
+#joblib.dump(clf1, 'testcasesForMLSat/prob_feat4/prob_feat4.pkl')
 probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []
