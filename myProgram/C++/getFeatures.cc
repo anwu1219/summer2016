@@ -105,7 +105,6 @@ vector<double> getFeatures(vector<vector<int>>& formula, unsigned int num_var, u
     num_eles += size;
     if (all_clauses.find(c_sign) == all_clauses.end()) all_clauses.insert(c_sign);
     else {
-      cout << i << " " << c_sign;
       num_clause--;
       continue;
     }
