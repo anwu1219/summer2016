@@ -1,1 +1,0 @@
-python python/learning_model_testrain.py samples/samples_without_normalized_features/data_ordered_balanced_train1.txt samples/samples_without_normalized_features/data_ordered_balanced_test1.txt
