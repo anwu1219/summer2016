@@ -1,0 +1,28 @@
+The following data files and all data files used to generate these files contain 33 features--no entropy, and no VIG_deg_std (which is an accident).
+
+data_longer_sat_test2.txt             
+data_longer_sat_train2.txt            
+data_longer_with_original_test1.txt   
+data_longer_with_original_train1.txt  
+data_ordered_test1.txt                
+data_ordered_train1.txt               
+data_ordered_with_original_test1.txt  
+data_ordered_with_original_train1.txt
+data_with_original_test1.txt           
+data_with_original_train1.txt   
+
+The following data files contains the same features as the files above. However, they should be trained with dimension-unrelated features (15), which is a subset of the features above. On the other hand, the occurrence of formulae with a certain num_var is the same for SAT examples and UNSAT examples. 
+
+data_ordered_balanced_test1.txt               
+data_ordered_balanced_train1.txt              
+data_ordered_balanced_with_original_test1.txt 
+data_ordered_balanced_with_original_train1.txt
+
+THE following data files contains 32 features, with occurrence of binary clauses, ternary clauses... 
+data_orig_prob_feat_test2.txt   
+data_prob_feat_balanced_test2.txt               
+data_prob_feat_balanced_train2.txt              
+data_orig_prob_feat_train2.txt  
+data_prob_feat_balanced_with_original_test2.txt
+data_prob_feat_balanced_with_original_train2.txt
+

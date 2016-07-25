@@ -14,8 +14,8 @@ def main():
 
 
 def updateCollect(collect_file, formula):
-	if os.path.isfile(formula + "Sol.txt"):
-		with open(formula + "Sol.txt", 'r') as in_file:
+	if os.path.isfile(formula + "sol"):
+		with open(formula + "sol", 'r') as in_file:
                         try:
                                 if "UNSAT" in in_file.readlines()[0]:
                                         tar = 0

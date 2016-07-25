@@ -1,0 +1,54 @@
+
+Value of objective function: 81.00000000
+
+Actual values of the variables:
+v1                              0
+v2                              1
+v3                              1
+v5                              0
+v6                              0
+v7                              0
+v8                              1
+v9                              0
+v10                             1
+v11                             0
+v12                             0
+v13                             0
+v16                             0
+v17                             0
+v18                             0
+v19                             0
+v20                             1
+v21                             0
+v23                             0
+v24                             0
+v25                             0
+v26                             1
+v27                             0
+v28                             1
+v29                             0
+v30                             1
+v31                             1
+v32                             1
+v33                             1
+v34                             0
+v35                             1
+v36                             1
+v37                             0
+v39                             1
+v40                             1
+v41                             0
+v42                             1
+v44                             0
+v45                             1
+v46                             0
+v47                             0
+v48                             1
+v49                             1
+v4                              0
+v15                             0
+v50                             0
+v14                             0
+v38                             0
+v43                             0
+v22                             0

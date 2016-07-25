@@ -1,0 +1,4 @@
+.log: log file generated during miniSolv
+.sol: solution file to a SAT formula
+.ulit: lit assignment that results in UNSAT formula
+.dimacs/.cnf: SAT formula
