@@ -1,5 +1,6 @@
 c generated dimacs file
 <<<<<<< HEAD
+<<<<<<< HEAD
 p cnf 76 263
 17 -13 34 0
 18 37 0
@@ -265,6 +266,8 @@ p cnf 76 263
 76 19 0
 -43 23 0
 =======
+=======
+>>>>>>> 4c806fe2d4eea75f88b3ccff6200a49df051cb0b
 p cnf 80 283
 25 65 73 0
 18 -14 35 0
@@ -549,4 +552,7 @@ p cnf 80 283
 -51 66 -30 0
 -42 80 20 0
 -47 25 55 0
+<<<<<<< HEAD
 >>>>>>> chooseBranchPython
+=======
+>>>>>>> 4c806fe2d4eea75f88b3ccff6200a49df051cb0b

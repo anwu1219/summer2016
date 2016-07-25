@@ -51,10 +51,6 @@ int main(int argc, char *argv[]){
   unsigned int num_clauses = 0;
   if (myfile.is_open()){
     getline(myfile,line);
-    getline(myfile,line);
-    getline(myfile,line);
-    getline(myfile,line);
-    getline(myfile,line);
     string tok;
     while (myfile >> tok){
       if (counter == 4) break;
