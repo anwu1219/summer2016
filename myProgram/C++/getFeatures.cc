@@ -71,6 +71,7 @@ int main(int argc, char *argv[]){
   }
   vector<double> feats = getFeatures(formula, num_vars, num_clauses);
   ofstream outputFile(argv[2], ios::app);
+  outputFile << argv[1] << " " << num_vars << " ";
   for (auto& feat : feats) outputFile << feat << " ";
   outputFile << argv[3] << endl;
   return 0;
