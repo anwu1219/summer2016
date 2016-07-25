@@ -1,0 +1,9 @@
+import sys 
+import os
+import random
+
+r = random.randint(0,4)
+if r == 0:
+    os.rename(sys.argv[1], "testset" + sys.argv[1])
+else:
+    os.rename(sys.argv[1], "trainset" + sys.argv[1])

@@ -1,0 +1,6 @@
+c generated dimacs file
+p cnf 5 4
+5 -1 0
+5 -3 0
+-4 1 0
+-4 -2 0

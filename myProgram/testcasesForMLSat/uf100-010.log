@@ -10,6 +10,15 @@ WARNING: for repeatability, setting FPU to use double precision
 |           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |
 ===============================================================================
 ===============================================================================
+<<<<<<< HEAD
+restarts              : 11
+conflicts             : 0              (0 /sec)
+decisions             : 402            (0.00 % random) (14 /sec)
+propagations          : 644            (22 /sec)
+conflict literals     : 0              (-nan % deleted)
+Memory used           : 30.00 MB
+CPU time              : 28.988 s
+=======
 restarts              : 5
 conflicts             : 4              (0 /sec)
 decisions             : 240            (0.00 % random) (20 /sec)
@@ -17,5 +26,6 @@ propagations          : 427            (36 /sec)
 conflict literals     : 0              (-nan % deleted)
 Memory used           : 32.00 MB
 CPU time              : 11.836 s
+>>>>>>> 4c806fe2d4eea75f88b3ccff6200a49df051cb0b
 
 SATISFIABLE
