@@ -56,24 +56,22 @@ with open(TRAIN_FILE_NAME, 'r') as in_file:
 	data_set = in_file.readlines()
 	for line in data_set:
 		line =line.split() # skip the formula identifier, num_var, and num_clause
-                if "uf100" in line[0] or "uuf100" in line[0]:
-                        line = line[2:]
-                        line = map(float, line)
-                        #               X.append([line[0]])
-                        X.append(line[:14]  + line[18:22] + line[26:-1])
-                        Y.append(line[-1])
+                line = line[2:]
+                line = map(float, line)
+                #               X.append([line[0]])
+                X.append(line[:-1])
+                Y.append(line[-1])
 
 with open(TEST_FILE_NAME, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
                 line =line.split() # skip the formula identifier, num_var, and num_clause
-                if "uf100" in line[0] or "uuf100" in line[0]:
-                        line = line[2:]
-                        line = map(float, line)
-                        #                X_test.append([line[0]])
-                        #                X_test.append(line[:-1])
-                        X_test.append(line[:14]  + line[18:22] + line[26:-1])
-                        Y_test.append(line[-1])
+                line = line[2:]
+                line = map(float, line)
+                #                X_test.append([line[0]])
+                #                X_test.append(line[:-1])
+                X_test.append(line[:-1])
+                Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
 #X = scaler.transform(X)
@@ -106,7 +104,7 @@ probs =  clf1.predict_proba(X_test)[:,1]
 X_test_hp = []
 Y_test_hp = []
 for i in range(len(probs)):
-        if probs[i] > 0.99 or probs[i] < 0.01:
+        if probs[i] > 0.8 or probs[i] < 0.2:
                 X_test_hp.append(X_test[i])
                 Y_test_hp.append(Y_test[i])
 print len(X_test_hp)
