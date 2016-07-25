@@ -29,6 +29,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <queue>
 #include <random>
 #include "ClpSimplex.hpp"
+#include <sstream>
 using namespace std;
 
 vector<vector<int>> cur_formula = vector<vector<int>>();
@@ -40,34 +41,42 @@ void LP_features(vector<vector<int>>& formula, set<int> local_unassigned, int nu
 void add_stat_mean_var(vector<double>& lst, vector<double>& feats);
 void add_stat_all(vector<double>& lst, vector<double>& feats);
 
+vector<string> split(string str, char delimiter) {
+  vector<string> internal;
+  stringstream ss(str); // Turn the string into a stream.
+  string tok;
+  
+  while(getline(ss, tok, delimiter)) {
+    internal.push_back(tok);
+  }
+  
+  return internal;
+}
 
 
 int main(int argc, char *argv[]){
-  string line;
+  string line_s;
   ifstream myfile (argv[1]);
   int counter = 0;
   vector<vector<int>> formula;
+  vector<string> line;
+  vector<int> temp;
   unsigned int num_vars = 0;
   unsigned int num_clauses = 0;
   if (myfile.is_open()){
-    getline(myfile,line);
-    string tok;
-    while (myfile >> tok){
-      if (counter == 4) break;
-      if (counter == 2) num_vars = atoi(tok.c_str());
-      if (counter == 3) num_clauses = atoi(tok.c_str());
-      counter++;
-    }
-    int value;
-    vector<int> clause = vector<int>();
-    while ( myfile >> value){
-      if (value == 0){
-	formula.push_back(clause);
-	vector<int> clause = vector<int>();
+    while(getline(myfile,line_s)){ // To get you all the lines.      
+      line = split(line_s, ' ');
+      if (line[0].compare("p") == 0){
+	num_vars = atoi(line[2].c_str());
+	if (atoi(line[3].c_str()) != 0) num_clauses = atoi(line[3].c_str());
+	else num_clauses = atoi(line[4].c_str());
       }
-      else clause.push_back(value);
+      else if (line[0].compare("c") != 0){
+	temp = vector<int>();
+	for (unsigned int i = 0; i < line.size() - 1; i++) if (atoi(line[i].c_str()) != 0) temp.push_back(atoi(line[i].c_str()));
+	formula.push_back(temp);
+      }
     }
-    myfile.close();
   }
   vector<double> feats = getFeatures(formula, num_vars, num_clauses);
   ofstream outputFile(argv[2], ios::app);
@@ -89,13 +98,14 @@ vector<double> getFeatures(vector<vector<int>>& formula, unsigned int num_var, u
   unsigned int pos_num, size, pos_occ, var_occ, bi_clause, ter_clause, num_eles;
   num_bi = 0; num_ter = 0; num_horn = 0; num_rev_horn = 0; POSNEG_ratio_var_mean = 0; 
   bi_clause = 0;   ter_clause = 0; num_eles = 0;
-  for (unsigned int i = 0; i < formula.size() - 1; i++){
+  for (unsigned int i = 0; i < formula.size(); i++){
     auto clause = formula[i];
     string c_sign = clause_string_sign(clause);
     size = clause.size();
     num_eles += size;
     if (all_clauses.find(c_sign) == all_clauses.end()) all_clauses.insert(c_sign);
     else {
+      cout << i << " " << c_sign;
       num_clause--;
       continue;
     }
@@ -132,7 +142,7 @@ vector<double> getFeatures(vector<vector<int>>& formula, unsigned int num_var, u
       }
     }
   }
-  feats.push_back(double(num_clause) / num_var);
+  feats.push_back(double(num_clause) / double(num_var));
   add_stat_mean_var(pos_neg_ratios, feats); // pos_neg_cl_ratio
   feats.push_back(double(num_bi) / num_clause); //rat_bi    
   feats.push_back(double(num_ter) / num_clause); //rat_ter  
@@ -178,7 +188,7 @@ void LP_features(vector<vector<int>>& formula, set<int> local_unassigned, int nu
     vars[-var] = j;
     j++;
   }
-  int numberRows = formula.size() - 1;
+  int numberRows = formula.size();
   int numberColumns = local_unassigned.size();
 
   double objective [numberColumns]; //done
@@ -262,39 +272,29 @@ string clause_string(vector<int> clause){
 
 void add_stat_mean_var(vector<double>& lst, vector<double>& feats){
   // Get the max, min, mean, std of the lst and append it to feats
-  double sum = 0.0;
-  double mean =0.0;
-  double var =0.0;
-  for (auto &i : lst){
-    sum += i;
-  }
-  mean = sum / double(lst.size());
-  sum = 0;
-  for (auto &i : lst) sum += pow((i - mean), 2);
-  var = sqrt(sum / double(lst.size()));
+  double sum = accumulate(lst.begin(), lst.end(), 0.0);
+  double mean = sum / lst.size();
+  vector<double> diff(lst.size());
+  transform(lst.begin(), lst.end(), diff.begin(), [mean](double x) { return x - mean; });
+  double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+  double stdev = std::sqrt(sq_sum / lst.size());
+  
   feats.push_back(mean);
-  feats.push_back(var);
+  feats.push_back(stdev);
 }
 
 void add_stat_all(vector<double>& lst, vector<double>& feats){
   // Get the max, min, mean, std of the lst and append it to feats                                    
-  double sum = 0.0;
-  double mean =0.0;
-  double var =0.0;
-  double min = 9999999;
-  double max = -9999999;
-  for (auto &i : lst){
-    if (i < min) min = i;
-    if (i > max) max = i;
-    sum += i;
-  }
-  mean = sum / double(lst.size());
-  sum = 0;
-  for (auto &i : lst) sum += pow((i - mean), 2);
-  var = sqrt(sum / double(lst.size()));
-  feats.push_back(max);
-  feats.push_back(min);
+  double sum = accumulate(lst.begin(), lst.end(), 0.0);
+  double mean = sum / lst.size();
+  vector<double> diff(lst.size());
+  transform(lst.begin(), lst.end(), diff.begin(), [mean](double x) { return x - mean; });
+  double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+  double stdev = std::sqrt(sq_sum / lst.size());
+  auto min_max = std::minmax_element(lst.begin(), lst.end());
+  feats.push_back(lst[min_max.second - lst.begin()]);
+  feats.push_back(lst[min_max.first - lst.begin()]);
   feats.push_back(mean);
-  feats.push_back(var);
+  feats.push_back(stdev);
 }
 

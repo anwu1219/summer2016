@@ -370,27 +370,27 @@ def get_sat_prob(formula, num_vars):
         lst = []
         for key in bi_clause_occ_dic:
             lst.append(bi_clause_occ_dic[key])
-        to_return += add_stat(lst)
+#        to_return += add_stat(lst)
         lst = []
         for key in var_occ_bi:
             lst.append(len(var_occ_bi[key])/float(len(bi_clause_occ_dic)))
         to_return += add_stat(lst)
     else:
         lst = [0]
-        to_return += add_stat(lst)
+#        to_return += add_stat(lst)
         to_return += add_stat(lst)
     if len(ter_clause_occ_dic) != 0:
         lst = []
         for key in ter_clause_occ_dic:
             lst.append(ter_clause_occ_dic[key])
-        to_return += add_stat(lst)
+#        to_return += add_stat(lst)
         lst = []
         for key in var_occ_ter:
             lst.append(len(var_occ_ter[key])/float(len(ter_clause_occ_dic)))
         to_return += add_stat(lst)
     else:
         lst = [0]
-        to_return += add_stat(lst)
+#        to_return += add_stat(lst)
         to_return += add_stat(lst)
     return to_return
 
