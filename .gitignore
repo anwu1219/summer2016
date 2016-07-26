@@ -11,8 +11,6 @@
 *.*#
 *.pyc
 *.out
-myProgram/harderSat/
-myProgram/harderSat1/
 myProgram/TrainSet/
 myProgram/TestSet/
 myProgram/SAT_New/

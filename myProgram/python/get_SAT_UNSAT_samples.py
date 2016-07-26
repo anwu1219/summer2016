@@ -45,7 +45,8 @@ def write_UNSAT(original_cnf, content):
                 unsat_lit_file = original_cnf.split('.')[0]+ '_' + str(i) + ".ulit"
                 continue
         new_content = copy.deepcopy(content)
-        write_UNSAT_file(unsat_lit_file.split(".")[0], new_content, lits)
+        if random.randint(1, 20) == 10:
+            write_UNSAT_file(unsat_lit_file.split(".")[0], new_content, lits)
         i += 1
         unsat_lit_file = original_cnf.split('.')[0]+ '_' + str(i) + ".ulit"
 
@@ -60,6 +61,12 @@ def write_UNSAT_file(filename, content, lits):
         content, lits = unit_propagation(new_dimacs, lits)
         content, sol = shrink_formula(content, range(content[1][2] + 1)[1:])
     if not contains_empty(content):
+        s = set()
+        for line in content[2:]:
+            for ele in line:
+                s.add(abs(ele))
+        content[1][2] = len(s) - 1
+        content[1][3] = len(content) - 2
         with open("u" + filename + ".dimacs", 'w') as out_file:
             out_file.write(content[0]) # The first line has change line itself
             for line in content[1:]:
@@ -89,12 +96,17 @@ def write_SAT_file(original_cnf, in_content, solution, original_len):
     new_dimacs, solution = update_content(in_content, solution, 0)
     new_dimacs, solution = unit_propagation(new_dimacs, solution)
     new_dimacs, solution = shrink_formula(new_dimacs, solution)
-
+    s = set()
+    for line in new_dimacs[2:]:
+        for ele in line:
+            s.add(abs(ele))
+    new_dimacs[1][2] = len(s) - 1
+    new_dimacs[1][3] = len(new_dimacs) - 2
     if len(original_cnf.split('_')) == 1:
         new_original_cnf = original_cnf.split('.')[0]+ '_' + "1.dimacs"
     else:
         new_original_cnf = original_cnf.split('_')[0]+ '_' + str (int (original_cnf.split('_')[1].split('.')[0]) + 1) + ".dimacs"
-    if len(solution) >= original_len * 0.5:
+    if new_dimacs[1][3] > 5:
         with open(new_original_cnf, 'w') as out_file:
             out_file.write(new_dimacs[0])
             for line in new_dimacs[1:]:
