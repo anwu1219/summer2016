@@ -56,24 +56,24 @@ with open(TRAIN_FILE_NAME, 'r') as in_file:
 	data_set = in_file.readlines()
 	for line in data_set:
 		line =line.split() # skip the formula identifier, num_var, and num_clause
-                if "uf100-" in line[0]:
-                        line = line[2:]
-                        line = map(float, line)
-                        #               X.append([line[0]])
-                        X.append(line[:-1])
-                        Y.append(line[-1])
+                #                if "uf100-" in line[0]:
+                line = line[2:]
+                line = map(float, line)
+                #               X.append([line[0]])
+                X.append(line[:-1])
+                Y.append(line[-1])
 
 with open(TEST_FILE_NAME, 'r') as in_file:
         data_set = in_file.readlines()
         for line in data_set:
                 line =line.split() # skip the formula identifier, num_var, and num_clause
-                if "uf100-" in line[0]:
-                        line = line[2:]
-                        line = map(float, line)
-                        #                X_test.append([line[0]])
-                        #                X_test.append(line[:-1])
-                        X_test.append(line[:-1])
-                        Y_test.append(line[-1])
+                #if "uf100-" in line[0]:
+                line = line[2:]
+                line = map(float, line)
+                #                X_test.append([line[0]])
+                #                X_test.append(line[:-1])
+                X_test.append(line[:-1])
+                Y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
 #X = scaler.transform(X)
