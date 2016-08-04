@@ -4,7 +4,7 @@ import random
 
 occurrence = {}
 with open(sys.argv[1], 'r') as in_file:
-    i = 1
+    i = 0
     for line in in_file:
         line = map(int, line.split())
         occurrence[i] = [min(line[0], line[1]), min(line[0], line[1])]

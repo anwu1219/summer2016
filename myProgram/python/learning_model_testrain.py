@@ -104,7 +104,7 @@ clf1.fit(X, Y)
 try:
         print "Feature importance:", clf1.feature_importances_ 
 except AttributeError:
-        print "Weight", clf1.coef_, clf1.intercept_
+        print "Weight", clf1.coef_.tolist(), clf1.intercept_
 print "Train score:",clf1.score(X, Y)
 print "Test score:", clf1.score(X_test, Y_test)
 #joblib.dump(clf1, 'testcasesForMLSat/prob_feat4/prob_feat4.pkl')
