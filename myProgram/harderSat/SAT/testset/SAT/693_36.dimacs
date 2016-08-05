@@ -1,9 +1,0 @@
-c generated dimacs file
-p cnf 11 7
-2 11 0
-2 -1 0
-1 6 0
-5 -8 0
--4 7 0
--10 -9 0
-3 7 0

@@ -8,4 +8,4 @@ get_SAT_UNSAT_examples: get_SAT_UNSAT_examples.cc
 
 g++ -o createMinu1.out -std=c++11 createMinu1.cc
 
-g++ -o predictBackbone.out -std=c++11 predictBackbone.cc
+g++ -o predictBackbone.out -std=c++11 predictBackbone.cc -I/usr/include/coin -L/usr/lib/x86_64-linux-gnu/ -lClp -lCoinUtils

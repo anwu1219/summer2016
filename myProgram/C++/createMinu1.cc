@@ -54,7 +54,7 @@ void write_SAT(string& filename, vector<vector<int>> formula){
   int num_var = 300;
   vector<vector<int>> temp;
   ofstream outputFile;
-  for (int lit = 1; lit <= 1; lit++){
+  for (int lit = 1; lit <= num_var; lit++){
     temp = tempFormula(formula, lit);
     outputFile.open(string(filename + "_" + to_string(lit) + ".dimacs").c_str());
     outputFile << "c generated" << endl;
