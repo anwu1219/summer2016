@@ -3,7 +3,7 @@ import sys
 
 contentSAT = {}
 contentUNSAT = {}
-for i in range(301):
+for i in range(300):
     contentSAT[i] = 0
     contentUNSAT[i] = 0
 with open(sys.argv[1],'r') as in_file:
@@ -14,6 +14,6 @@ with open(sys.argv[1],'r') as in_file:
         else:
             contentSAT[int(line[1])] += 1
 with open(sys.argv[2], 'w') as out_file:
-    for i in range(301):
+    for i in range(300):
         out_file.write("%d\t%d\n" %(contentUNSAT[i], contentSAT[i]))
     

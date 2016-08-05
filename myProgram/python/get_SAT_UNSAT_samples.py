@@ -26,8 +26,9 @@ def main():
         pass
     else:
         solution = map(int, contentS[1].split())
+#        write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1], len(solution))
         write_UNSAT(original_cnf, copy.deepcopy(content))
-        write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1], len(solution))
+
         
 
 
@@ -41,18 +42,16 @@ def write_UNSAT(original_cnf, content):
             if len(second) != 0: 
                 lits = map(int, first[: len(second) + 1])
             else:
-                i += 1
-                unsat_lit_file = original_cnf.split('.')[0]+ '_' + str(i) + ".ulit"
-                continue
+                lits = [int(first[0])]
         new_content = copy.deepcopy(content)
-        if random.randint(1, 20) == 10:
-            write_UNSAT_file(unsat_lit_file.split(".")[0], new_content, lits)
+        if random.randint(1, 5) == 3 or second > 95 or content[1][2] < 10:
+            write_UNSAT_file(unsat_lit_file.split(".")[0], new_content, lits, 0)
         i += 1
         unsat_lit_file = original_cnf.split('.')[0]+ '_' + str(i) + ".ulit"
 
 
 
-def write_UNSAT_file(filename, content, lits):
+def write_UNSAT_file(filename, content, lits, index):
     """
     Takes in a satisfiable formula, and takes in a wrong lits assignment, generates a .dimacs if the resulting formula does not contain empty clauses  
     """
@@ -67,12 +66,19 @@ def write_UNSAT_file(filename, content, lits):
                 s.add(abs(ele))
         content[1][2] = len(s) - 1
         content[1][3] = len(content) - 2
-        with open("u" + filename + ".dimacs", 'w') as out_file:
-            out_file.write(content[0]) # The first line has change line itself
-            for line in content[1:]:
-                out_file.write(' '.join(map(str,line)) + "\n")
+        if content[1][2] > 0:
+#        if content[1][2] < 184 or content[1][2] > 284:
+            with open("u" + filename + ".dimacs", 'w') as out_file:
+                out_file.write(content[0]) # The first line has change line itself
+                for line in content[1:]:
+                    out_file.write(' '.join(map(str,line)) + "\n")
+        i = random.randint(1, content[1][2])
+        j = random.randint(0, 1)
+        if j == 0:
+            j = -1
+        write_UNSAT_file(filename.split("~")[0] + "~" + str(index), copy.deepcopy(content), [j * i], index + 1)
 
-
+                
 
 def write_SAT(original_cnf, content, solution):
     write_SAT_file(original_cnf, copy.deepcopy(content), solution[:-1], len(solution))

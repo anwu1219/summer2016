@@ -7,96 +7,63 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn import preprocessing
 import sys
-
-
-def search_for_best_features(X, X_test, X_val, Y, Y_test, Y_val, clf):
-	new_X = X[:, 0:1]
-	new_X_test = X_test[:, 0:1]
-	new_X_val = X_val[:, 0:1]
-	print new_X
-	clf.fit(new_X, Y)
-	last_score = clf.score(new_X_test, Y_test)
-	for i in range(len(X[0])):
-		print last_score
-		new_X1 = np.append(new_X, X[:, i : i + 1], axis=1)
-		new_X_test1 = np.append(new_X_test, X_test[:, i : i + 1], axis=1)
-		new_X_val1 = np.append(new_X_val, X_val[:, i : i + 1], axis=1)
-		current_score = clf.fit(new_X1, Y).score(new_X_test1, Y_test)
-		if (current_score > last_score):
-			new_X = new_X1
-			new_X_test = new_X_test1
-			new_X_val = new_X_val1
-			last_score = current_score
-	return clf.fit(new_X, Y).score(new_X_val, Y_val)
-
+import random
+from sklearn import cross_validation
+from sklearn import datasets
 
 TRAIN_FILE_NAME = sys.argv[1] # used to build the models
-TEST_FILE_NAME = sys.argv[2]
-from random import shuffle
+
 
 X = []
 Y = []
 X_test = []
-Y_test = []
-X_val = []
-Y_val = []
+y_test = []
 
 with open(TRAIN_FILE_NAME, 'r') as in_file:
-	train_set = in_file.readlines()
-	for line in train_set:
-		line = line.split()[2:12] + line.split()[13:] # skip the formula identifier
-		try:
-			X.append(map(float, line[:-1])) 
-			Y.append(float(line[-1]))
-		except ValueError:
-			print line
+        data_set = in_file.readlines()
+        random.shuffle(data_set)
+        for line in data_set:
+                line =line.split()
+                line = line[4:6] + line[7:14] + [line[-1]]
+                line = map(float, line)
+                X.append(line[:-1])
+                Y.append(line[-1])
 
-with open(TEST_FILE_NAME, 'r') as in_file:
-	train_set = in_file.readlines()
-	for line in train_set[:6000]:
-		line = line.split()[2:12] + line.split()[13:]
-		try:
-			X.append(map(float, line[:-1]))
-			Y.append(float(line[-1]))
-		except ValueError:
-			print line
-	for line in train_set[6000:18000]:
-		line = line.split()[2:12] + line.split()[13:]
-		try:
-			X_test.append(map(float, line[:-1]))
-			Y_test.append(float(line[-1]))
-		except ValueError:
-			print line
-	for line in train_set[18000:]:
-		line = line.split()[2:12] + line.split()[13:]
-		try:
-			X_val.append(map(float, line[:-1]))
-			Y_val.append(float(line[-1]))
-		except ValueError:
-			print line
+if len(sys.argv) <= 2:
+        X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, Y, test_size=0.2, random_state=0)
+else:
+        X_train = X
+        y_train = Y
+        with open(sys.argv[2], 'r') as in_file:
+                data_set = in_file.readlines()
+                random.shuffle(data_set)
+                for line in data_set:
+                        line =line.split()
+                        line = line[4:6] + line[7:14] + [line[-1]]
+                        line = map(float, line)
+                        X_test.append(line[:-1])
+                        y_test.append(line[-1])
 
 #scaler = preprocessing.StandardScaler().fit(X)
 #X = scaler.transform(X)
-shuffle(X)
 #X_test = scaler.transform(X_test)
-print np.sum(Y_test), "negative samples out of", len(Y_test)
-print np.sum(Y_val), "negative samples out of", len(Y_val)
+print np.sum(y_train), "pos samples out of", len(y_train)
+print np.sum(y_test), "pos samples out of", len(y_test)
+
 
 a = [1e-6, 1e-5, 1e-4, 0.001,0.01, 0.1, 1.0, 10.0,100]
-#clf1 = RandomForestClassifier(n_estimators = 50, n_jobs = -1)
-#clf1 = KNeighborsClassifier(n_neighbors = 39, n_jobs = -1, weights = 'distance')
 clf1 = LogisticRegressionCV(Cs = a)
-# #clf1 = LinearSVC()
-# print "Learning..."
-# clf1.fit(X, Y)
-# #clf2.fit(X[:], Y)
-# try:
-# 	predict1 = clf1.score(X_test, Y_test)
-# #predict2 = clf2.score(X_test, Y_test)
-# 	print predict1
-# except ValueError:
-# 	print "fail"
+#clf1 = RandomForestClassifier(n_estimators = 100)
 
-print search_for_best_features(np.array(X), np.array(X_test), np.array(X_val), Y, Y_test, Y_val, clf1)
+clf1.fit(X_train, y_train)
+try:
+        print "Feature importance:", clf1.feature_importances_
+except AttributeError:
+        print "Weight", clf1.coef_.tolist(), clf1.intercept_
+print "Train score:",clf1.score(X_train, y_train)
+print "Test score:", clf1.score(X_test, y_test)
+
+
+#print search_for_best_features(np.array(X), np.array(X_test), np.array(X_val), Y, Y_test, Y_val, clf1)
 
 

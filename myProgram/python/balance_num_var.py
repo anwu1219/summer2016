@@ -16,9 +16,10 @@ new_file = sys.argv[3]
 
 content = []
 with open(original_file, 'r') as in_file:
-    for line in in_file:
+    contents = in_file.readlines();
+    random.shuffle(contents)
+    for line in contents:
         content.append(line.split())
-random.shuffle(content)
 with open(new_file, 'w') as out_file:
     for line in content:
         num_var = int(line[1])
