@@ -23,7 +23,7 @@ def main():
                 else:
                         out_name = in_name.split('.')[0]+'.sol'
                         out = open(in_name.split('.')[0]+'.log','w')
-                subprocess.call(["/home/anwu/minisatOML/core/minisat", in_name, out_name], stdout=out)
+                subprocess.call(["/home/anwu/minisatQML/core/minisat", in_name, out_name], stdout=out)
                 out.close()
         elif action == '-m': # Give another solution of a solved SAT formula 
                 times = int(sys.argv[2])
